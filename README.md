@@ -28,5 +28,5 @@ Fork RootCommands and do a Pull Request. I will merge your changes back into the
 
 # Add the lib to your project
 
-* New -> Android Project -> Create project from existing source, choose org_donations 
-* Add org_donations as Android Lib (Properties of your project -> Android -> Library -> add org_donations as android library)
+* New -> Android Project -> Create project from existing source, choose RootCommands Library
+* Add RootCommands Library as Android Lib (Properties of your project -> Android -> Library -> add RootCommands Library as android library)
