@@ -1,12 +1,13 @@
 # RootCommands
 
-_Currently it is not ready to be used in production_
+_Currently RootCommands is not ready to be used in production_
 
 This is a library to simplify the execution of root commands.
-It is a wrapper around many methods used to work on rooted Android devices.
+It is a Java wrapper around native executables used to execute root commands.
 
 # Examples
 
+```java
 ShellExecutor exec = new ShellExecutor(true, 100, null, null, 25000);
 exec.openShell();
 
@@ -19,6 +20,7 @@ if (rootAccess) {
 }
 
 exec.closeShell();
+```
 
 # Contribute
 
