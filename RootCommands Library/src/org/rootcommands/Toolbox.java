@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
 
 import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
-import org.rootcommands.util.ShellResult;
 
 /**
  * All methods in this class are working with Androids toolbox. Toolbox is similar to busybox, but
@@ -33,20 +32,8 @@ import org.rootcommands.util.ShellResult;
  * This means that these commands are designed to work on every Android OS, with a _working_ toolbox
  * binary on it. They don't require busybox!
  * 
- * Sadly sometimes toolbox is broken. This can be recognized by lines such as
- * "Stderr: ls: /system/bin/toolbox: Value too large for defined data type". We try to detect broken
- * versions here. It the same problem as some busybox versions have (see
- * https://code.google.com/p/busybox-android/issues/detail?id=1). It is giving
- * "Value too large for defined data type" on certain file operations (e.g. ls and chown) in certain
- * directories (e.g. /data/data)
- * 
- * Known roms with broken toolbox:
- * 
- * - stock rom Android 4 of Galaxy Note
- * 
  */
 public class Toolbox {
-
     // regex to get pid out of ps line, example:
     // root 2611 0.0 0.0 19408 2104 pts/2 S 13:41 0:00 bash
     protected static final String PS_REGEX = "^\\S+\\s+([0-9]+).*$";
@@ -55,18 +42,18 @@ public class Toolbox {
         PS_PATTERN = Pattern.compile(PS_REGEX);
     }
 
-    private ShellExecutor executor;
+    private Shell shell;
 
     /**
      * All methods in this class are working with Androids toolbox. Toolbox is similar to busybox,
      * but normally shipped on every Android OS.
      * 
-     * @param executor
+     * @param shell
      *            where to execute commands on
      */
-    public Toolbox(ShellExecutor executor) {
+    public Toolbox(Shell shell) {
         super();
-        this.executor = executor;
+        this.shell = shell;
     }
 
     /**
@@ -74,133 +61,107 @@ public class Toolbox {
      * 
      * (commands: id)
      * 
-     * @return true if user accepted root access
+     * @return true if user has given root access
      */
-    public boolean isAccessGiven() {
-        ShellResult result = new ShellResult() {
+    public boolean isRootAccessGiven() {
+        boolean accessGiven = false;
 
-            @Override
-            public void processError(String line) {
-                Log.d(Constants.TAG, "process error: " + line);
-                setError(1);
-                notifyThread();
+        try {
+            SimpleCommand idCommand = new SimpleCommand(0, "id");
+            shell.add(idCommand).waitForFinish();
+
+            if (idCommand.getOutput().contains("uid=0")) {
+                accessGiven = true;
             }
-
-            @Override
-            public void process(String line) {
-                Log.d(Constants.TAG, "process: " + line);
-
-                // check for uid=0 what means the current user id is root
-                if (line.contains("uid=0")) {
-                    setData(true);
-                } else {
-                    setData(false);
-                }
-
-                // wakeup, we have an answer
-                notifyThread();
-            }
-
-            @Override
-            public void onFailure(Exception ex) {
-                Log.d(Constants.TAG, "failure: " + ex.getMessage());
-                setError(1);
-                notifyThread();
-            }
-
-        };
-        executor.runCommand("id", result);
-
-        // block thread until we have parsed the output via result object
-        result.waitThread();
-
-        if (result.getData() != null && result.getData().equals(true)) {
-            return true;
-        } else {
-            return false;
+        } catch (Exception e) {
+            Log.e(Constants.TAG, "Command failed!", e);
         }
+
+        return accessGiven;
+    }
+
+    /**
+     * This command class gets all pids to a given process name
+     */
+    private class PsCommand extends Command {
+        private String processName;
+        private String pids = null;
+
+        public PsCommand(int id, String processName) {
+            super(id, "ps");
+            this.processName = processName;
+        }
+
+        public String getPids() {
+            return pids;
+        }
+
+        @Override
+        public void output(int id, String line) {
+            if (line.contains(processName)) {
+                Matcher psMatcher = PS_PATTERN.matcher(line);
+
+                try {
+                    if (psMatcher.find()) {
+                        String pid = psMatcher.group(1);
+                        // concatenate to existing pids, to use later in kill
+                        if (pids != null) {
+                            pids += " " + pid;
+                        } else {
+                            pids = pid;
+                        }
+                        Log.d(Constants.TAG, "Found pid: " + pid);
+                    } else {
+                        Log.d(Constants.TAG, "Matching in ps command failed!");
+                    }
+                } catch (Exception e) {
+                    Log.d(Constants.TAG, "Error with regex!");
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void afterExecution(int id, int exitCode) {
+            Log.d(Constants.TAG, "ID: " + id + ", ExitCode: " + exitCode);
+        }
+
     }
 
     /**
      * This method can be used to kill a running process
      * 
+     * (commands: ps, kill)
+     * 
      * @param processName
      *            name of process to kill
      * @return <code>true</code> if process was found and killed successfully
      */
-    public boolean killProcess(final String processName) {
-        // RootTools.log(InternalVariables.TAG, "Killing process " + processName);
+    public boolean killAll(final String processName) {
         Log.d(Constants.TAG, "Killing process " + processName);
 
-        boolean processKilled = false;
-        // try {
-        ShellResult result = new ShellResult() {
-            @Override
-            public void process(String line) {
-                if (line.contains(processName)) {
-                    Matcher psMatcher = PS_PATTERN.matcher(line);
-
-                    try {
-                        if (psMatcher.find()) {
-                            String pid = psMatcher.group(1);
-                            // concatenate to existing pids, to use later in kill
-                            if (getData() != null) {
-                                setData(getData() + " " + pid);
-                            } else {
-                                setData(pid);
-                            }
-                            Log.d(Constants.TAG, "Found pid: " + pid);
-                        } else {
-                            Log.d(Constants.TAG, "Matching in ps command failed!");
-                        }
-                    } catch (Exception e) {
-                        Log.d(Constants.TAG, "Error with regex!");
-                        e.printStackTrace();
-                    }
-                }
-
-                // notifyThread();
-                // TODO: Big problem when to know that there is no entry with this id?
-                // how to know that this is the end of output???
-                // thus when to notify?
-            }
-
-            @Override
-            public void onFailure(Exception ex) {
-                Log.d(Constants.TAG, "failure: " + ex.getMessage());
-                setError(1);
-                notifyThread();
-            }
-
-            @Override
-            public void processError(String line) {
-                Log.d(Constants.TAG, "process error: " + line);
-                setError(1);
-                notifyThread();
-            }
-
-        };
-
-        executor.runCommand("ps", result);
-
-        // block thread until we have parsed the output via result object
-        result.waitThread();
-
-        // sendShell(new String[] { "ps" }, 1, result, -1);
-
-        if (result.getError() == 0) {
-            // get all pids in one string, created in process method
-            String pids = (String) result.getData();
+        try {
+            PsCommand commandPs = new PsCommand(0, processName);
+            shell.add(commandPs).waitForFinish();
 
             // kill processes
-            if (pids != null) {
+            if (commandPs.getPids() != null) {
                 // example: kill -9 1234 1222 5343
-                executor.runCommand("kill -9 " + pids, null);
-                processKilled = true;
-            }
-        }
+                SimpleCommand killCommand = new SimpleCommand(1, "kill -9 " + commandPs.getPids());
+                shell.add(killCommand).waitForFinish();
 
-        return processKilled;
+                if (killCommand.getExitCode() == 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            Log.e(Constants.TAG, "Command failed!", e);
+            return false;
+        }
     }
 
     /**
@@ -214,7 +175,7 @@ public class Toolbox {
      * @param preservePermissions
      * @throws FileNotFoundException
      */
-    public void copyFile(String source, String destination, boolean remountAsRw,
+    public boolean copyFile(String source, String destination, boolean remountAsRw,
             boolean preservePermissions) throws FileNotFoundException {
         /*
          * dd can only copy files, but we can not check if the source is a file without invoking
@@ -225,7 +186,79 @@ public class Toolbox {
             throw new FileNotFoundException("dd can only copy files!");
         }
 
-        executor.runCommand("dd if=" + source + " of=" + destination, null);
-        // alternative: "cat " + source + " > " + destination
+        boolean commandSuccess = false;
+        try {
+            SimpleCommand ddCommand = new SimpleCommand(0, "dd if=" + source + " of=" + destination);
+            shell.add(ddCommand).waitForFinish();
+
+            if (ddCommand.getExitCode() == 0) {
+                commandSuccess = true;
+            }
+        } catch (Exception e) {
+            Log.e(Constants.TAG, "Command failed!", e);
+        }
+
+        // try cat if dd fails
+        if (commandSuccess == false) {
+            try {
+                SimpleCommand catCommand = new SimpleCommand(0, "cat " + source + " > "
+                        + destination);
+                shell.add(catCommand).waitForFinish();
+
+                if (catCommand.getExitCode() == 0) {
+                    commandSuccess = true;
+                }
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "Command failed!", e);
+            }
+        }
+
+        return commandSuccess;
+    }
+
+    public static final int REBOOT_HOTREBOOT = 1;
+    public static final int REBOOT_REBOOT = 2;
+    public static final int REBOOT_SHUTDOWN = 3;
+    public static final int REBOOT_RECOVERY = 4;
+
+    /**
+     * Shutdown or reboot device. Possible actions are REBOOT_HOTREBOOT, REBOOT_REBOOT,
+     * REBOOT_SHUTDOWN, REBOOT_RECOVERY
+     * 
+     * @param action
+     */
+    public void reboot(int action) {
+        if (action == REBOOT_HOTREBOOT) {
+            killAll("system_server");
+            // or: killAll("zygote");
+        } else {
+            String command;
+            switch (action) {
+            case REBOOT_REBOOT:
+                command = "reboot";
+                break;
+            case REBOOT_SHUTDOWN:
+                command = "reboot -p";
+                break;
+            case REBOOT_RECOVERY:
+                command = "reboot recovery";
+                break;
+            default:
+                command = "reboot";
+                break;
+            }
+
+            try {
+                SimpleCommand rebootCommand = new SimpleCommand(0, command);
+                shell.add(rebootCommand).waitForFinish();
+
+                if (rebootCommand.getExitCode() == -1) {
+                    Log.e(Constants.TAG, "Reboot failed!");
+                }
+            } catch (Exception e) {
+                Log.e(Constants.TAG, "Command failed!", e);
+            }
+        }
+
     }
 }

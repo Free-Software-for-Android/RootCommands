@@ -20,6 +20,7 @@ package org.rootcommands.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class Utils {
@@ -75,17 +76,18 @@ public class Utils {
      * Code from https://github.com/miracle2k/android-autostarts, use under Apache License was
      * agreed by Michael Elsdörfer
      */
-    public static Process runWithEnv(String command, String[] customEnv, String baseDirectory)
-            throws IOException {
+    public static Process runWithEnv(String command, ArrayList<String> customAddedEnv,
+            String baseDirectory) throws IOException {
+
         Map<String, String> environment = System.getenv();
         String[] envArray = new String[environment.size()
-                + (customEnv != null ? customEnv.length : 0)];
+                + (customAddedEnv != null ? customAddedEnv.size() : 0)];
         int i = 0;
         for (Map.Entry<String, String> entry : environment.entrySet()) {
             envArray[i++] = entry.getKey() + "=" + entry.getValue();
         }
-        if (customEnv != null) {
-            for (String entry : customEnv) {
+        if (customAddedEnv != null) {
+            for (String entry : customAddedEnv) {
                 envArray[i++] = entry;
             }
         }
