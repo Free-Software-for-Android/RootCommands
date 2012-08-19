@@ -4,16 +4,25 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:layout_width="fill_parent"
+    <Button
+        android:id="@+id/btest_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/hello" />
+        android:onClick="toolboxTestOnClick"
+        android:text="Toolbox Test" />
 
     <Button
         android:id="@+id/btest_button"
-        android:onClick="testOnClick"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:onClick="otherTestOnClick"
+        android:text="Other Tests" />
+
+    <Button
+        android:id="@+id/btest_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="binariesTestOnClick"
+        android:text="Binaries Test" />
 
 </LinearLayout>

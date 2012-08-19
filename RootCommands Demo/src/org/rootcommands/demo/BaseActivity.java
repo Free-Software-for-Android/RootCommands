@@ -37,7 +37,7 @@ public class BaseActivity extends Activity {
         setContentView(R.layout.main);
     }
 
-    public void testOnClick(View view) {
+    public void toolboxTestOnClick(View view) {
         // ShellExecutor exec = new ShellExecutor(true, 100, null, null, 25000);
         // exec.openShell();
 
@@ -53,12 +53,14 @@ public class BaseActivity extends Activity {
 
         // RootTools.debugMode = true;
 
-        SimpleCommand command0 = new SimpleCommand(0, "echo this is a command",
+        SimpleCommand command0 = new SimpleCommand("echo this is a command",
                 "echo this is another command");
 
-        SimpleCommand command1 = new SimpleCommand(1, "toolbox ls");
+        SimpleCommand command1 = new SimpleCommand("toolbox ls");
 
-        SimpleCommand command2 = new SimpleCommand(2, "ls -la");
+        SimpleCommand command2 = new SimpleCommand("ls -la");
+
+        SimpleCommand command3 = new SimpleCommand("echo Value too large for defined data type");
 
         Shell shell = null;
         try {
@@ -77,7 +79,9 @@ public class BaseActivity extends Activity {
             } else {
                 Log.d(Constants.TAG, "nope!");
             }
-            
+
+            // shell.add(command3).waitForFinish();
+
             shell.close();
 
         } catch (Exception e) {
@@ -109,6 +113,13 @@ public class BaseActivity extends Activity {
         // e.printStackTrace();
         // }
 
+    }
+
+    public void otherTestOnClick(View view) {
+
+    }
+
+    public void binariesTestOnClick(View view) {
 
     }
 }

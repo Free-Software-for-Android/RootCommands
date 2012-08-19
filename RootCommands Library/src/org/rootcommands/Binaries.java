@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Dominik Schürmann <dominik@dominikschuermann.de>
- * Copyright (c) 2012 Stephen Erickson, Chris Ravenscroft, Adam Shanks, Jeremy Lakeman (RootTools)
+ * Copyright (c) 2012 Stephen Erickson, Chris Ravenscroft, Adam Shanks (RootTools)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,17 @@
 
 package org.rootcommands;
 
-public class SimpleCommand extends Command {
-    private StringBuilder sb = new StringBuilder();
+public class Binaries {
+    private Shell shell;
 
-    public SimpleCommand(String... command) {
-        super(command);
+    /**
+     * This class provides ways to deploy and use your own binaries
+     * 
+     * @param shell
+     *            where to execute commands on
+     */
+    public Binaries(Shell shell) {
+        super();
+        this.shell = shell;
     }
-
-    @Override
-    public void output(int id, String line) {
-        sb.append(line).append('\n');
-    }
-
-    @Override
-    public void afterExecution(int id, int exitCode) {
-    }
-
-    public String getOutput() {
-        return sb.toString();
-    }
-
-    public int getExitCode() {
-        return exitCode;
-    }
-
 }

@@ -19,11 +19,8 @@ package org.rootcommands;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,9 +30,8 @@ import org.rootcommands.util.RootAccessDeniedException;
 import org.rootcommands.util.Utils;
 
 public class Shell {
-    private final Process proc;
-    private final BufferedReader stdOut;
-    private final BufferedReader stdErr;
+    private final Process shellProcess;
+    private final BufferedReader stdOutErr;
     private final DataOutputStream outputStream;
     private final List<Command> commands = new ArrayList<Command>();
     private boolean close = false;
@@ -135,21 +131,18 @@ public class Shell {
 
         Log.d(Constants.TAG, "Starting shell: " + shell);
 
-        // proc = new ProcessBuilder(shell).redirectErrorStream(true).start();
-
-        // TODO: ERROR STREAM!!!
         // open shell!
-        proc = Utils.runWithEnv(shell, customEnv, baseDirectory);
+        shellProcess = Utils.runWithEnv(shell, customEnv, baseDirectory);
 
-        stdOut = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        stdErr = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-        outputStream = new DataOutputStream(proc.getOutputStream());
+        // StdErr is redirected to StdOut, defined in Command.getCommand()
+        stdOutErr = new BufferedReader(new InputStreamReader(shellProcess.getInputStream()));
+        outputStream = new DataOutputStream(shellProcess.getOutputStream());
 
         outputStream.write("echo Started\n".getBytes());
         outputStream.flush();
 
         while (true) {
-            String line = stdOut.readLine();
+            String line = stdOutErr.readLine();
             if (line == null)
                 throw new RootAccessDeniedException(
                         "stdout line is null! This is probably no shell!");
@@ -162,16 +155,28 @@ public class Shell {
             throw new IOException("Unable to start shell, unexpected output \"" + line + "\"");
         }
 
-        new Thread(input, "Shell Input").start();
-        new Thread(output, "Shell Output").start();
+        new Thread(inputRunnable, "Shell Input").start();
+        new Thread(outputRunnable, "Shell Output").start();
     }
 
-    private Runnable input = new Runnable() {
+    private Runnable inputRunnable = new Runnable() {
         public void run() {
             try {
                 writeCommands();
             } catch (IOException e) {
                 Log.e(Constants.TAG, "IO Exception", e);
+            }
+        }
+    };
+
+    private Runnable outputRunnable = new Runnable() {
+        public void run() {
+            try {
+                readOutput();
+            } catch (IOException e) {
+                Log.e(Constants.TAG, "IOException", e);
+            } catch (InterruptedException e) {
+                Log.e(Constants.TAG, "InterruptedException", e);
             }
         }
     };
@@ -183,37 +188,43 @@ public class Shell {
         try {
             // Yes, this really is the way to check if the process is
             // still running.
-            proc.exitValue();
+            shellProcess.exitValue();
         } catch (IllegalThreadStateException e) {
             // Only call destroy() if the process is still running;
             // Calling it for a terminated process will not crash, but
             // (starting with at least ICS/4.0) spam the log with INFO
             // messages ala "Failed to destroy process" and "kill
             // failed: ESRCH (No such process)".
-            proc.destroy();
+            shellProcess.destroy();
         }
 
         Log.d(Constants.TAG, "Shell destroyed");
     }
 
+    /**
+     * Writes queued commands one after another into the opened shell. After an execution a token is
+     * written to seperate command output on read
+     * 
+     * @throws IOException
+     */
     private void writeCommands() throws IOException {
         try {
-            int write = 0;
+            int commandIndex = 0;
             while (true) {
                 DataOutputStream out;
                 synchronized (commands) {
-                    while (!close && write >= commands.size()) {
+                    while (!close && commandIndex >= commands.size()) {
                         commands.wait();
                     }
                     out = this.outputStream;
                 }
-                if (write < commands.size()) {
-                    Command next = commands.get(write);
+                if (commandIndex < commands.size()) {
+                    Command next = commands.get(commandIndex);
                     next.writeCommand(out);
-                    String line = "\necho " + token + " " + write + " $?\n";
+                    String line = "\necho " + token + " " + commandIndex + " $?\n";
                     out.write(line.getBytes());
                     out.flush();
-                    write++;
+                    commandIndex++;
                 } else if (close) {
                     out.write("\nexit 0\n".getBytes());
                     out.flush();
@@ -227,80 +238,67 @@ public class Shell {
         }
     }
 
-    private Runnable output = new Runnable() {
-        public void run() {
-            try {
-                readOutput();
-            } catch (IOException e) {
-                Log.e(Constants.TAG, "IOException", e);
-            } catch (InterruptedException e) {
-                Log.e(Constants.TAG, "InterruptedException", e);
-            }
-        }
-    };
-
-    /*
+    /**
+     * Reads output line by line, seperated by token written after every command
      * 
-     * TODO: implement check for broken toolbox, busybox, throw new exception then
-     * 
-     * 
-     * Sadly sometimes toolbox is broken. This can be recognized by lines such as
-     * "Stderr: ls: /system/bin/toolbox: Value too large for defined data type". We try to detect
-     * broken versions here. It the same problem as some busybox versions have (see
-     * https://code.google.com/p/busybox-android/issues/detail?id=1). It is giving
-     * "Value too large for defined data type" on certain file operations (e.g. ls and chown) in
-     * certain directories (e.g. /data/data)
-     * 
-     * Known roms with broken toolbox:
-     * 
-     * - stock rom Android 4 of Galaxy Note
+     * @throws IOException
+     * @throws InterruptedException
      */
     private void readOutput() throws IOException, InterruptedException {
         Command command = null;
-        int read = 0;
+
+        // index of current command
+        int commandIndex = 0;
         while (true) {
-            String line = stdOut.readLine();
+            String lineStdOut = stdOutErr.readLine();
 
             // terminate on EOF
-            if (line == null)
+            if (lineStdOut == null)
                 break;
 
-            // Log.v("Shell", "Out; \"" + line + "\"");
             if (command == null) {
-                if (read >= commands.size()) {
+
+                // break on close after last command
+                if (commandIndex >= commands.size()) {
                     if (close)
                         break;
                     continue;
                 }
-                command = commands.get(read);
+
+                // get current command
+                command = commands.get(commandIndex);
             }
 
-            int pos = line.indexOf(token);
-            if (pos > 0)
-                command.output(command.id, line.substring(0, pos));
+            int pos = lineStdOut.indexOf(token);
+            if (pos > 0) {
+                command.processOutput(lineStdOut.substring(0, pos));
+            }
             if (pos >= 0) {
-                line = line.substring(pos);
-                String fields[] = line.split(" ");
+                lineStdOut = lineStdOut.substring(pos);
+                String fields[] = lineStdOut.split(" ");
                 int id = Integer.parseInt(fields[1]);
-                if (id == read) {
+                if (id == commandIndex) {
                     command.setExitCode(Integer.parseInt(fields[2]));
-                    read++;
+
+                    // go to next command
+                    commandIndex++;
                     command = null;
                     continue;
                 }
             }
-            command.output(command.id, line);
+            command.processOutput(lineStdOut);
         }
         Log.d(Constants.TAG, "Read all output");
-        proc.waitFor();
+        shellProcess.waitFor();
         destroyShellProcess();
 
-        while (read < commands.size()) {
-            if (command == null)
-                command = commands.get(read);
-            command.terminated("Unexpected Termination.");
+        while (commandIndex < commands.size()) {
+            if (command == null) {
+                command = commands.get(commandIndex);
+            }
+            command.terminated("Unexpected Termination!");
+            commandIndex++;
             command = null;
-            read++;
         }
     }
 
@@ -316,8 +314,8 @@ public class Shell {
             throw new IOException("Unable to add commands to a closed shell");
         synchronized (commands) {
             commands.add(command);
-            // set shell on the command object, to now where it is running on
-            command.setShell(this);
+            // set shell on the command object, to know where the command is running on
+            command.addedToShell(this, (commands.size() - 1));
             commands.notifyAll();
         }
 

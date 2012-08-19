@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2012 Dominik Schürmann <dominik@dominikschuermann.de>
- * Copyright (c) 2012 Stephen Erickson, Chris Ravenscroft, Adam Shanks, Jeremy Lakeman (RootTools)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +14,19 @@
  * limitations under the License.
  */
 
-package org.rootcommands;
+package org.rootcommands.util;
 
-public class SimpleCommand extends Command {
-    private StringBuilder sb = new StringBuilder();
+import java.io.IOException;
 
-    public SimpleCommand(String... command) {
-        super(command);
+public class BrokenBusyboxException extends IOException {
+    private static final long serialVersionUID = 8337358201589488409L;
+
+    public BrokenBusyboxException() {
+        super();
     }
 
-    @Override
-    public void output(int id, String line) {
-        sb.append(line).append('\n');
-    }
-
-    @Override
-    public void afterExecution(int id, int exitCode) {
-    }
-
-    public String getOutput() {
-        return sb.toString();
-    }
-
-    public int getExitCode() {
-        return exitCode;
+    public BrokenBusyboxException(String detailMessage) {
+        super(detailMessage);
     }
 
 }

@@ -21,33 +21,49 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeoutException;
 
+import org.rootcommands.util.BrokenBusyboxException;
 import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
 
 public abstract class Command {
     final String command[];
     boolean finished = false;
+    boolean brokenBusyboxDetected = false;
     int exitCode;
     int id;
     int timeout = Constants.defaultTimeout;
-
     Shell shell = null;
 
-    public Command(int id, String... command) {
+    public Command(String... command) {
         this.command = command;
-        this.id = id;
     }
 
-    public Command(int id, int timeout, String... command) {
+    public Command(int timeout, String... command) {
         this.command = command;
-        this.id = id;
         this.timeout = timeout;
     }
 
+    /**
+     * This is called from Shell after adding it
+     * 
+     * @param shell
+     * @param id
+     */
+    public void addedToShell(Shell shell, int id) {
+        this.shell = shell;
+        this.id = id;
+    }
+
+    /**
+     * Gets command string executed on the shell
+     * 
+     * @return
+     */
     public String getCommand() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < command.length; i++) {
-            sb.append(command[i]);
+            // redirect stderr to stdout
+            sb.append(command[i] + " 2>&1");
             sb.append('\n');
         }
         Log.d(Constants.TAG, "Sending command(s): " + sb.toString());
@@ -58,7 +74,38 @@ public abstract class Command {
         out.write(getCommand().getBytes());
     }
 
+    public void processOutput(String line) {
+        Log.d(Constants.TAG, "ID: " + id + ", Output: " + line);
+
+        /*
+         * Sadly sometimes toolbox is broken. This can be recognized by lines such as
+         * "Stderr: ls: /system/bin/toolbox: Value too large for defined data type". We try to
+         * detect broken versions here. It the same problem as some busybox versions have (see
+         * https://code.google.com/p/busybox-android/issues/detail?id=1). It is giving
+         * "Value too large for defined data type" on certain file operations (e.g. ls and chown) in
+         * certain directories (e.g. /data/data)
+         * 
+         * Known roms with broken toolbox:
+         * 
+         * - stock rom Android 4 of Galaxy Note
+         */
+
+        if (line.contains("Value too large for defined data type")) {
+            Log.e(Constants.TAG, "Busybox is broken with high probability due to line: " + line);
+            brokenBusyboxDetected = true;
+        }
+
+        // now execute specific output parsing
+        output(id, line);
+    }
+
     public abstract void output(int id, String line);
+
+    public void processAfterExecution(int exitCode) {
+        Log.d(Constants.TAG, "ID: " + id + ", ExitCode: " + exitCode);
+
+        afterExecution(id, exitCode);
+    }
 
     public abstract void afterExecution(int id, int exitCode);
 
@@ -75,19 +122,15 @@ public abstract class Command {
         }
     }
 
-    public void setShell(Shell shell) {
-        this.shell = shell;
-    }
-
     /**
-     * Closes all shells
+     * Close the shell
      * 
      * @param reason
      */
     public void terminate(String reason) {
         try {
             shell.close();
-            Log.d(Constants.TAG, "Terminating all shells.");
+            Log.d(Constants.TAG, "Terminating the shell.");
             terminated(reason);
         } catch (IOException e) {
         }
@@ -102,13 +145,17 @@ public abstract class Command {
      * Waits for this command to finish and forwards exitCode into afterExecution method
      * 
      * @param timeout
-     * @throws InterruptedException
      * @throws TimeoutException
+     * @throws BrokenBusyboxException
      */
-    public void waitForFinish() throws InterruptedException, TimeoutException {
+    public void waitForFinish() throws TimeoutException, BrokenBusyboxException {
         synchronized (this) {
             while (!finished) {
-                this.wait(timeout);
+                try {
+                    this.wait(timeout);
+                } catch (InterruptedException e) {
+                    Log.e(Constants.TAG, "InterruptedException in waitForFinish()", e);
+                }
 
                 if (!finished) {
                     finished = true;
@@ -117,7 +164,11 @@ public abstract class Command {
                 }
             }
 
-            afterExecution(id, exitCode);
+            if (brokenBusyboxDetected) {
+                throw new BrokenBusyboxException();
+            }
+
+            processAfterExecution(exitCode);
         }
     }
 
