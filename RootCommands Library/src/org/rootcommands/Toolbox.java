@@ -17,6 +17,7 @@
 
 package org.rootcommands;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +28,8 @@ import java.util.regex.Pattern;
 import org.rootcommands.util.BrokenBusyboxException;
 import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
+
+import android.os.StatFs;
 
 /**
  * All methods in this class are working with Androids toolbox. Toolbox is similar to busybox, but
@@ -364,18 +367,18 @@ public class Toolbox {
      * 
      * @param file
      *            absolute path to file
-     * @param permission
+     * @param permissions
      *            String like 777
      * @return true if command worked
      * @throws BrokenBusyboxException
      * @throws TimeoutException
      * @throws IOException
      */
-    public boolean setFilePermissions(String file, String permission)
+    public boolean setFilePermissions(String file, String permissions)
             throws BrokenBusyboxException, TimeoutException, IOException {
-        Log.d(Constants.TAG, "Set permissions of " + file + " to " + permission);
+        Log.d(Constants.TAG, "Set permissions of " + file + " to " + permissions);
 
-        SimpleCommand chmodCommand = new SimpleCommand("chmod " + permission + " " + file);
+        SimpleCommand chmodCommand = new SimpleCommand("chmod " + permissions + " " + file);
         shell.add(chmodCommand).waitForFinish();
 
         if (chmodCommand.getExitCode() == 0) {
@@ -438,7 +441,6 @@ public class Toolbox {
             boolean preservePermissions) throws BrokenBusyboxException, IOException,
             TimeoutException {
 
-        // TODO: implement preservePerm
         /*
          * dd can only copy files, but we can not check if the source is a file without invoking
          * shell commands, because from Java we probably have no read access, thus we only check if
@@ -448,11 +450,17 @@ public class Toolbox {
             throw new FileNotFoundException("dd can only copy files!");
         }
 
-        // remount destination as rw before copying to it
+        // remount destination as read/write before copying to it
         if (remountAsRw) {
             if (!remount(destination, "RW")) {
                 throw new FileNotFoundException("Remounting failed!");
             }
+        }
+
+        // get permissions of source before overwriting
+        String permissions = null;
+        if (preservePermissions) {
+            permissions = getFilePermissions(source);
         }
 
         boolean commandSuccess = false;
@@ -472,7 +480,12 @@ public class Toolbox {
             }
         }
 
-        // remount destination back to ro
+        // set back permissions from source to destination
+        if (preservePermissions) {
+            setFilePermissions(destination, permissions);
+        }
+
+        // remount destination back to read only
         if (remountAsRw) {
             if (!remount(destination, "RO")) {
                 throw new FileNotFoundException("Remounting failed!");
@@ -567,7 +580,7 @@ public class Toolbox {
      * @throws BrokenBusyboxException
      * 
      */
-    public boolean fileExists(final String file) throws BrokenBusyboxException, TimeoutException,
+    public boolean fileExists(String file) throws BrokenBusyboxException, TimeoutException,
             IOException {
         FileExistsCommand fileExistsCommand = new FileExistsCommand(file);
         shell.add(fileExistsCommand).waitForFinish();
@@ -577,6 +590,35 @@ public class Toolbox {
         } else {
             return false;
         }
+    }
+
+    public abstract class WithWritePermission {
+        abstract void whileHavingWritePermission();
+    }
+
+    /**
+     * Execute user defined Java code while having temporary write permissions on a file using chmod
+     * 777
+     * 
+     * @param file
+     * @param withWritePermission
+     * @throws BrokenBusyboxException
+     * @throws TimeoutException
+     * @throws IOException
+     */
+    public void withWritePermissions(String file, WithWritePermission withWritePermission)
+            throws BrokenBusyboxException, TimeoutException, IOException {
+
+        String oldPermissions = getFilePermissions(file);
+
+        // set write permissions for everyone, then Dalvik VM can also write to that file!
+        setFilePermissions(file, "777");
+
+        // execute user defined code
+        withWritePermission.whileHavingWritePermission();
+
+        // set back to old permissions
+        setFilePermissions(file, oldPermissions);
     }
 
     /**
@@ -613,7 +655,7 @@ public class Toolbox {
      * @throws Exception
      *             if we cannot determine how the mount is mounted.
      */
-    static String getMountedAs(String path) throws Exception {
+    public String getMountedAs(String path) throws Exception {
         ArrayList<Mount> mounts = Remounter.getMounts();
         if (mounts != null) {
             for (Mount mount : mounts) {
@@ -626,6 +668,67 @@ public class Toolbox {
             throw new Exception();
         } else {
             throw new Exception();
+        }
+    }
+
+    /**
+     * Check if there is enough space on partition where target is located
+     * 
+     * @param size
+     *            size of file to put on partition
+     * @param target
+     *            path where to put the file
+     * 
+     * @return true if it will fit on partition of target, false if it will not fit.
+     */
+    public boolean hasEnoughSpaceOnPartition(String target, long size) {
+        try {
+            // new File(target).getFreeSpace() (API 9) is not working on data partition
+
+            // get directory without file
+            String directory = new File(target).getParent().toString();
+
+            StatFs stat = new StatFs(directory);
+            long blockSize = stat.getBlockSize();
+            long availableBlocks = stat.getAvailableBlocks();
+            long availableSpace = availableBlocks * blockSize;
+
+            Log.i(Constants.TAG, "Checking for enough space: Target: " + target + ", directory: "
+                    + directory + " size: " + size + ", availableSpace: " + availableSpace);
+
+            if (size < availableSpace) {
+                return true;
+            } else {
+                Log.e(Constants.TAG, "Not enough space on partition!");
+                return false;
+            }
+        } catch (Exception e) {
+            // if new StatFs(directory) fails catch IllegalArgumentException and just return true as
+            // workaround
+            Log.e(Constants.TAG, "Problem while getting available space on partition!", e);
+            return true;
+        }
+    }
+
+    /**
+     * TODO: Not tested!
+     * 
+     * @param toggle
+     * @throws IOException
+     * @throws TimeoutException
+     * @throws BrokenBusyboxException
+     */
+    public void toggleAdbDaemon(boolean toggle) throws BrokenBusyboxException, TimeoutException,
+            IOException {
+        SimpleCommand disableAdb = new SimpleCommand("setprop persist.service.adb.enable 0",
+                "stop adbd");
+        SimpleCommand enableAdb = new SimpleCommand("setprop persist.service.adb.enable 1",
+                "stop adbd", "sleep 1", "start adbd");
+
+        if (toggle) {
+            shell.add(enableAdb).waitForFinish();
+        } else {
+            shell.add(disableAdb).waitForFinish();
         }
     }
 
