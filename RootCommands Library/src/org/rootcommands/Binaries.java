@@ -49,6 +49,19 @@ public class Binaries {
      * You need a root shell on Android < 2.3 to set the executable permission! On Android >= 2.3
      * shell can be null, as this can be done using official API now!
      * 
+     * 
+     * TODO:
+     * 
+     * Problems with resources
+     * http://ponystyle.com/blog/2010/03/26/dealing-with-asset-compression-in-android-apps/
+     * 
+     * Android < 2.3 can't uncompress files over 1MB from res/ and assets/ when they are compressed!
+     * 
+     * Workaround by using .png for example!
+     * 
+     * Check if this really is also is true for res/raw and not only for assets/
+     * 
+     * 
      * @param context
      * @param shell
      *            where to execute commands on
