@@ -244,8 +244,8 @@ public class Toolbox {
              * regex to get symlink
              * 
              * <pre>
-             *  ->        /proc/self/fd/0
-             * ^\-\> \s+  (.*)           $
+             *  ->           /proc/self/fd/0
+             * ^\\-\\> \\s+  (.*)           $
              * </pre>
              */
             symlinkRegex = "^\\-\\>\\s+(.*)$";
@@ -390,10 +390,9 @@ public class Toolbox {
 
     /**
      * This will return a String that represent the symlink for a specified file.
-     * <p/>
      * 
-     * @param The
-     *            path to the file to get the Symlink for. (must have absolute path)
+     * @param file
+     *            The path to the file to get the Symlink for. (must have absolute path)
      * 
      * @return A String that represent the symlink for a specified file or null if no symlink
      *         exists.
@@ -624,7 +623,7 @@ public class Toolbox {
     /**
      * This will take a path, which can contain the file name as well, and attempt to remount the
      * underlying partition.
-     * <p/>
+     * 
      * For example, passing in the following string:
      * "/system/bin/some/directory/that/really/would/never/exist" will result in /system ultimately
      * being remounted. However, keep in mind that the longer the path you supply, the more work
@@ -646,7 +645,6 @@ public class Toolbox {
 
     /**
      * This will tell you how the specified mount is mounted. rw, ro, etc...
-     * <p/>
      * 
      * @param The
      *            mount you want to check
