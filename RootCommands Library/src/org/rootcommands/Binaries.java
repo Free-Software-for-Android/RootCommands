@@ -76,8 +76,8 @@ public class Binaries {
     }
 
     /**
-     * Install binary with versioning. This means the binary is redeployed everytime the application
-     * itself is updated to a new version.
+     * Install binary with versioning. This means the binary is redeployed every time the
+     * application itself is updated to a new version.
      * 
      * Binaries have to be included as busybox-x86 or busybox-arm in the assets folder of your
      * android project
@@ -103,8 +103,8 @@ public class Binaries {
      * Deploy binary to private directory files/bin/ of your app. This is done without any version
      * check!
      * 
-     * On Android >= 2.3, deployed binaries can be set as executeable without root, before 2.3 you
-     * need root to set executeable permission!
+     * On Android >= 2.3, deployed binaries can be set as executable without root, before 2.3 you
+     * need root to set executable permission!
      * 
      * @param binaryName
      */
@@ -153,7 +153,7 @@ public class Binaries {
     /**
      * Get version code of application itself
      * 
-     * @return -1 if unsuccessfull
+     * @return -1 if unsuccessful
      */
     private int getPackageVersion() {
         try {
@@ -168,7 +168,7 @@ public class Binaries {
     }
 
     /**
-     * Save version as sharedpreference for binary
+     * Save version as shared preference for binary
      * 
      * @param binaryName
      * @param version
