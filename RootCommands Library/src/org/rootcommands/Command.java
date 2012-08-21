@@ -89,7 +89,6 @@ public abstract class Command {
          * 
          * - stock rom Android 4 of Galaxy Note
          */
-
         if (line.contains("Value too large for defined data type")) {
             Log.e(Constants.TAG, "Busybox is broken with high probability due to line: " + line);
             brokenBusyboxDetected = true;

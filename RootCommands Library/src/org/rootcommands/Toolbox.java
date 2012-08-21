@@ -38,14 +38,6 @@ import org.rootcommands.util.Log;
  * 
  */
 public class Toolbox {
-    // regex to get pid out of ps line, example:
-    // root 2611 0.0 0.0 19408 2104 pts/2 S 13:41 0:00 bash
-    protected static final String PS_REGEX = "^\\S+\\s+([0-9]+).*$";
-    protected static Pattern PS_PATTERN;
-    static {
-        PS_PATTERN = Pattern.compile(PS_REGEX);
-    }
-
     private Shell shell;
 
     /**
@@ -87,11 +79,24 @@ public class Toolbox {
     private class PsCommand extends Command {
         private String processName;
         private ArrayList<String> pids;
+        private String psRegex;
+        private Pattern psPattern;
 
         public PsCommand(String processName) {
             super("ps");
             this.processName = processName;
             pids = new ArrayList<String>();
+
+            /**
+             * regex to get pid out of ps line, example:
+             * 
+             * <pre>
+             *  root    24736    1   12140  584   ffffffff 40010d14 S /data/data/org.adaway/files/blank_webserver
+             * ^\\S \\s ([0-9]+)                          .*                                      processName    $
+             * </pre>
+             */
+            psRegex = "^\\S+\\s+([0-9]+).*" + Pattern.quote(processName) + "$";
+            psPattern = Pattern.compile(psRegex);
         }
 
         public ArrayList<String> getPids() {
@@ -110,9 +115,11 @@ public class Toolbox {
 
         @Override
         public void output(int id, String line) {
+            // generell check if line contains processName
             if (line.contains(processName)) {
-                Matcher psMatcher = PS_PATTERN.matcher(line);
+                Matcher psMatcher = psPattern.matcher(line);
 
+                // try to match line exactly
                 try {
                     if (psMatcher.find()) {
                         String pid = psMatcher.group(1);
@@ -123,8 +130,7 @@ public class Toolbox {
                         Log.d(Constants.TAG, "Matching in ps command failed!");
                     }
                 } catch (Exception e) {
-                    Log.d(Constants.TAG, "Error with regex!");
-                    e.printStackTrace();
+                    Log.e(Constants.TAG, "Error with regex!", e);
                 }
             }
         }
@@ -151,13 +157,13 @@ public class Toolbox {
             IOException {
         Log.d(Constants.TAG, "Killing process " + processName);
 
-        PsCommand commandPs = new PsCommand(processName);
-        shell.add(commandPs).waitForFinish();
+        PsCommand psCommand = new PsCommand(processName);
+        shell.add(psCommand).waitForFinish();
 
         // kill processes
-        if (!commandPs.getPids().isEmpty()) {
+        if (!psCommand.getPids().isEmpty()) {
             // example: kill -9 1234 1222 5343
-            SimpleCommand killCommand = new SimpleCommand("kill -9 " + commandPs.getPidsString());
+            SimpleCommand killCommand = new SimpleCommand("kill -9 " + psCommand.getPidsString());
             shell.add(killCommand).waitForFinish();
 
             if (killCommand.getExitCode() == 0) {
@@ -183,11 +189,11 @@ public class Toolbox {
      */
     boolean isProcessRunning(final String processName) throws BrokenBusyboxException,
             TimeoutException, IOException {
-        PsCommand commandPs = new PsCommand(processName);
-        shell.add(commandPs).waitForFinish();
+        PsCommand psCommand = new PsCommand(processName);
+        shell.add(psCommand).waitForFinish();
 
         // if pids are available process is running!
-        if (!commandPs.getPids().isEmpty()) {
+        if (!psCommand.getPids().isEmpty()) {
             return true;
         } else {
             return false;
@@ -195,23 +201,244 @@ public class Toolbox {
     }
 
     /**
-     * Copys file
+     * Ls command to get permissions or symlinks
+     */
+    private class LsCommand extends Command {
+        private String file;
+        private String lsRegex;
+        private Pattern lsPattern;
+        private String symlinkRegex;
+        private Pattern symlinkPattern;
+
+        private String symlink;
+        private String permissions;
+
+        public String getSymlink() {
+            return symlink;
+        }
+
+        public String getPermissions() {
+            return permissions;
+        }
+
+        public LsCommand(String file) {
+            super("ls -l " + file, "busybox ls -l " + file, "/system/bin/failsafe/toolbox ls -l "
+                    + file, "toolbox ls -l " + file);
+            this.file = file;
+
+            /**
+             * regex to get pid out of ps line, example:
+             * 
+             * <pre>
+             *  lrwxrwxrwx     1 root root            15 Aug 13 12:14 dev/stdin -> /proc/self/fd/0
+             * ^(\\S{10}) \\s+     .*                                 file      (.*)              $
+             * </pre>
+             */
+            lsRegex = "^(\\S{10})\\s+.*" + Pattern.quote(file) + "(.*)$";
+            lsPattern = Pattern.compile(lsRegex);
+
+            /**
+             * regex to get symlink
+             * 
+             * <pre>
+             *  ->        /proc/self/fd/0
+             * ^\-\> \s+  (.*)           $
+             * </pre>
+             */
+            symlinkRegex = "^\\-\\>\\s+(.*)$";
+            symlinkPattern = Pattern.compile(symlinkRegex);
+        }
+
+        /**
+         * Converts permission string from ls command to numerical value. Example: -rwxrwxrwx gets
+         * to 777
+         * 
+         * @param permissions
+         * @return
+         */
+        private String convertPermissions(String permissions) {
+            int owner = getGroupPermission(permissions.substring(1, 3));
+            int group = getGroupPermission(permissions.substring(4, 6));
+            int world = getGroupPermission(permissions.substring(7, 9));
+
+            return "" + owner + group + world;
+        }
+
+        /**
+         * Calculates permission for one group
+         * 
+         * @param permission
+         * @return value of permission string
+         */
+        private int getGroupPermission(String permission) {
+            int value = 0;
+
+            if (permission.charAt(0) == 'r') {
+                value += 4;
+            }
+            if (permission.charAt(1) == 'w') {
+                value += 2;
+            }
+            if (permission.charAt(2) == 'x') {
+                value += 1;
+            }
+
+            return value;
+        }
+
+        @Override
+        public void output(int id, String line) {
+            // general check if line contains file
+            if (line.contains(file)) {
+                Matcher lsMatcher = lsPattern.matcher(line);
+
+                // try to match line exactly
+                try {
+                    if (lsMatcher.find()) {
+                        permissions = convertPermissions(lsMatcher.group(1));
+
+                        Log.d(Constants.TAG, "Found permissions: " + permissions);
+
+                        // if there is more it could be a symlink
+                        String symlinkGroup = lsMatcher.group(2);
+                        if (symlinkGroup != null) {
+                            // try to parse for symlink
+                            Matcher symlinkMatcher = symlinkPattern.matcher(symlinkGroup);
+
+                            /*
+                             * TODO: If symlink points to a file in the same directory the path is
+                             * not absolute!!!
+                             */
+                            if (symlinkMatcher.find()) {
+                                symlink = symlinkMatcher.group(1);
+                                Log.d(Constants.TAG, "Symlink found: " + symlink);
+                            } else {
+                                Log.d(Constants.TAG, "No symlink found!");
+                            }
+                        }
+                    } else {
+                        Log.d(Constants.TAG, "Matching in ls command failed!");
+                    }
+                } catch (Exception e) {
+                    Log.e(Constants.TAG, "Error with regex!", e);
+                }
+            }
+        }
+
+        @Override
+        public void afterExecution(int id, int exitCode) {
+        }
+
+    }
+
+    /**
+     * @param file
+     *            String that represent the file, including the full path to the file and its name.
+     * @param followSymlinks
+     * @return File permissions as String, for example: 777, returns null on error
+     * @throws IOException
+     * @throws TimeoutException
+     * @throws BrokenBusyboxException
      * 
-     * (commands: dd)
+     */
+    public String getFilePermissions(String file) throws BrokenBusyboxException, TimeoutException,
+            IOException {
+        Log.d(Constants.TAG, "Checking permissions for " + file);
+
+        String permissions = null;
+
+        if (fileExists(file)) {
+            Log.d(Constants.TAG, file + " was found.");
+
+            LsCommand lsCommand = new LsCommand(file);
+            shell.add(lsCommand).waitForFinish();
+
+            permissions = lsCommand.getPermissions();
+        }
+
+        return permissions;
+    }
+
+    /**
+     * Sets permission of file
+     * 
+     * @param file
+     *            absolute path to file
+     * @param permission
+     *            String like 777
+     * @return true if command worked
+     * @throws BrokenBusyboxException
+     * @throws TimeoutException
+     * @throws IOException
+     */
+    public boolean setFilePermissions(String file, String permission)
+            throws BrokenBusyboxException, TimeoutException, IOException {
+        Log.d(Constants.TAG, "Set permissions of " + file + " to " + permission);
+
+        SimpleCommand chmodCommand = new SimpleCommand("chmod " + permission + " " + file);
+        shell.add(chmodCommand).waitForFinish();
+
+        if (chmodCommand.getExitCode() == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * This will return a String that represent the symlink for a specified file.
+     * <p/>
+     * 
+     * @param The
+     *            path to the file to get the Symlink for. (must have absolute path)
+     * 
+     * @return A String that represent the symlink for a specified file or null if no symlink
+     *         exists.
+     * @throws IOException
+     * @throws TimeoutException
+     * @throws BrokenBusyboxException
+     */
+    public String getSymlink(String file) throws BrokenBusyboxException, TimeoutException,
+            IOException {
+        Log.d(Constants.TAG, "Find symlink for " + file);
+
+        String symlink = null;
+
+        if (fileExists(file)) {
+            Log.d(Constants.TAG, file + " was found.");
+
+            LsCommand lsCommand = new LsCommand(file);
+            shell.add(lsCommand).waitForFinish();
+
+            symlink = lsCommand.getSymlink();
+        }
+
+        return symlink;
+    }
+
+    /**
+     * Copys a file to a destination. Because cp is not available on all android devices, we use dd
+     * or cat.
      * 
      * @param source
+     *            example: /data/data/org.adaway/files/hosts
      * @param destination
+     *            example: /system/etc/hosts
      * @param remountAsRw
-     * @param preservePermissions
-     * @throws IOException
+     *            remounts the destination as read/write before writing to it
+     * @param preserveFileAttributes
+     *            tries to copy file attributes from source to destination, if only cat is available
+     *            only permissions are preserved
+     * @return true if it was successfully copied
      * @throws BrokenBusyboxException
+     * @throws IOException
      * @throws TimeoutException
      */
     public boolean copyFile(String source, String destination, boolean remountAsRw,
             boolean preservePermissions) throws BrokenBusyboxException, IOException,
             TimeoutException {
 
-        // TODO: implement remount and preservePerm
+        // TODO: implement preservePerm
         /*
          * dd can only copy files, but we can not check if the source is a file without invoking
          * shell commands, because from Java we probably have no read access, thus we only check if
@@ -219,6 +446,13 @@ public class Toolbox {
          */
         if (source.endsWith("/") || destination.endsWith("/")) {
             throw new FileNotFoundException("dd can only copy files!");
+        }
+
+        // remount destination as rw before copying to it
+        if (remountAsRw) {
+            if (!remount(destination, "RW")) {
+                throw new FileNotFoundException("Remounting failed!");
+            }
         }
 
         boolean commandSuccess = false;
@@ -235,6 +469,13 @@ public class Toolbox {
 
             if (catCommand.getExitCode() == 0) {
                 commandSuccess = true;
+            }
+        }
+
+        // remount destination back to ro
+        if (remountAsRw) {
+            if (!remount(destination, "RO")) {
+                throw new FileNotFoundException("Remounting failed!");
             }
         }
 
@@ -356,8 +597,8 @@ public class Toolbox {
      */
     public boolean remount(String file, String mountType) {
         // Recieved a request, get an instance of Remounter
-        Remounter remounter = new Remounter();
-        // send the request.
+        Remounter remounter = new Remounter(shell);
+        // send the request
         return (remounter.remount(file, mountType));
     }
 

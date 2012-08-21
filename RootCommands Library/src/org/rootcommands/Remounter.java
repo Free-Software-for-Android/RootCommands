@@ -29,6 +29,13 @@ import org.rootcommands.util.Log;
 //no modifier, this means it is package-private. Only our internal classes can use this.
 class Remounter {
 
+    private Shell shell;
+
+    public Remounter(Shell shell) {
+        super();
+        this.shell = shell;
+    }
+
     /**
      * This will take a path, which can contain the file name as well, and attempt to remount the
      * underlying partition.
@@ -98,8 +105,8 @@ class Remounter {
                                 + mountPoint.getDevice().getAbsolutePath() + " "
                                 + mountPoint.getMountPoint().getAbsolutePath());
 
-                Shell.startRootShell().add(command);
-                command.waitForFinish();
+                // execute on shell
+                shell.add(command).waitForFinish();
 
             } catch (Exception e) {
             }

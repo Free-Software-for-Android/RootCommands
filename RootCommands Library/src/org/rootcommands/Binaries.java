@@ -30,4 +30,8 @@ public class Binaries {
         super();
         this.shell = shell;
     }
+    
+    public void install() {
+        
+    }
 }

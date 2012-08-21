@@ -128,10 +128,9 @@ public class Shell {
 
     private Shell(String shell, ArrayList<String> customEnv, String baseDirectory)
             throws IOException, RootAccessDeniedException {
-
         Log.d(Constants.TAG, "Starting shell: " + shell);
 
-        // open shell!
+        // start shell process!
         shellProcess = Utils.runWithEnv(shell, customEnv, baseDirectory);
 
         // StdErr is redirected to StdOut, defined in Command.getCommand()
@@ -145,7 +144,7 @@ public class Shell {
             String line = stdOutErr.readLine();
             if (line == null)
                 throw new RootAccessDeniedException(
-                        "stdout line is null! This is probably no shell!");
+                        "stdout line is null! Access was denied or this executeable is not a shell!");
             if ("".equals(line))
                 continue;
             if ("Started".equals(line))
