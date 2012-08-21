@@ -83,6 +83,7 @@ public class Binaries {
      * android project
      * 
      * @param binaryName
+     *            (without -x86)
      */
     public void installBinary(String binaryName) {
         File binary = new File(context.getFilesDir().getPath() + File.separator + BINARY_SUBDIR
@@ -93,7 +94,7 @@ public class Binaries {
             deployBinary(binaryName);
         } else {
             // redeploy if the package is newer than the binary deployed
-            if (getBinaryVersion(binaryName) <= getPackageVersion()) {
+            if (getBinaryVersion(binaryName) < getPackageVersion()) {
                 deployBinary(binaryName);
             }
         }
@@ -116,7 +117,7 @@ public class Binaries {
         try {
             src = context.getAssets().open(binaryName + "-" + arch);
         } catch (Exception e) {
-            Log.e(Constants.TAG, "Does the binary exists for this arch?", e);
+            Log.e(Constants.TAG, "Does the binary exist for this architecture?", e);
         }
 
         FileOutputStream dst = null;
@@ -142,11 +143,11 @@ public class Binaries {
             try {
                 tb.setFilePermissions(binary.getAbsolutePath(), "755");
             } catch (Exception e) {
-                Log.e(Constants.TAG, "Setting executeable permissions with root failed!", e);
+                Log.e(Constants.TAG, "Setting executable permissions using root failed!", e);
             }
         }
 
-        // after successfull deploy, save current version of binary to shared preferences
+        // after successful deploy, save current version of binary to shared preferences
         setBinaryVersion(binaryName, getPackageVersion());
     }
 
@@ -222,8 +223,8 @@ public class Binaries {
     /**
      * Copy a stream from input to output
      * 
-     * @param dst
      * @param src
+     * @param dst
      * @throws IOException
      */
     private void copyStream(InputStream src, OutputStream dst) {
