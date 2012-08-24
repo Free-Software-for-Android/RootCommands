@@ -30,7 +30,6 @@ import android.view.View;
 public class BaseActivity extends Activity {
     public static final String TAG = "Demo";
 
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,7 +50,6 @@ public class BaseActivity extends Activity {
 
         @Override
         public void output(int id, String line) {
-            // generell check if line contains processName
             if (line.contains(LINE)) {
                 Log.d(TAG, "Found it!");
                 found = true;

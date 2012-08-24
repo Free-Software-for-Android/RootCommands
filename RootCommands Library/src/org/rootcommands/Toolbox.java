@@ -122,7 +122,7 @@ public class Toolbox {
 
         @Override
         public void output(int id, String line) {
-            // generell check if line contains processName
+            // general check if line contains processName
             if (line.contains(processName)) {
                 Matcher psMatcher = psPattern.matcher(line);
 

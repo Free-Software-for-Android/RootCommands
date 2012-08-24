@@ -3,6 +3,16 @@
 This is a library to simplify the execution of root commands.
 It is a Java wrapper around native executables used to execute root commands.
 
+# Add the lib to your project
+
+Put the newest jar from the Downloads section (https://github.com/dschuermann/root-commands/downloads) into the ``libs`` folder of your Android project.
+
+## Alternative way
+
+* New -> Android Project -> Create project from existing source, choose RootCommands Library
+* Add RootCommands Library as Android Lib (Properties of your project -> Android -> Library -> add RootCommands Library as android library)
+
+
 # Examples
 
 ## Simple Commands
@@ -49,7 +59,6 @@ private class MyCommand extends Command {
 
     @Override
     public void output(int id, String line) {
-        // generell check if line contains processName
         if (line.contains(LINE)) {
             Log.d(TAG, "Found it!");
             found = true;
@@ -151,11 +160,6 @@ shell.close();
 # Contribute
 
 Fork RootCommands and do a Pull Request. I will merge your changes back into the main project.
-
-# Add the lib to your project
-
-* New -> Android Project -> Create project from existing source, choose RootCommands Library
-* Add RootCommands Library as Android Lib (Properties of your project -> Android -> Library -> add RootCommands Library as android library)
 
 # Authors
 RootCommands is based on several other open source projects, thus several authors are involved:
