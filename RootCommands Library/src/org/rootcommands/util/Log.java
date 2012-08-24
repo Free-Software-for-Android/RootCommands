@@ -23,7 +23,6 @@ package org.rootcommands.util;
 public final class Log {
 
     public static void v(String tag, String msg) {
-
         if (Constants.DEBUG) {
             android.util.Log.v(tag, msg);
         }
