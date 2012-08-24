@@ -5,19 +5,141 @@ It is a Java wrapper around native executables used to execute root commands.
 
 # Examples
 
+## Simple Commands
+
+You can instantiate SimpleCommands with the shell commands you want to execute. This is a very basic approach of executing something on a shell.
+
 ```java
-ShellExecutor exec = new ShellExecutor(true, 100, null, null, 25000);
-exec.openShell();
+// start root shell
+Shell shell = Shell.startRootShell();
 
-Toolbox toolbox = new Toolbox(exec);
+// simple commands
+SimpleCommand command0 = new SimpleCommand("echo this is a command",
+        "echo this is another command");
+SimpleCommand command1 = new SimpleCommand("toolbox ls");
+SimpleCommand command2 = new SimpleCommand("ls -la /system/etc/hosts");
 
-boolean rootAccess =  toolbox.isAccessGiven();
+shell.add(command0).waitForFinish();
+shell.add(command1).waitForFinish();
+shell.add(command2).waitForFinish();
 
-if (rootAccess) {
-  boolean success = toolbox.killProcess("zygote");
+Log.d(TAG, "Output of command2: " + command2.getOutput());
+Log.d(TAG, "Exit code of command2: " + command2.getExitCode());
+
+// close root shell
+shell.close();
+```
+
+## Define your own commands
+
+For more complex commands you can extend the Command class to parse the output while the shell executes the command.
+
+```java
+private class MyCommand extends Command {
+    private static final String LINE = "hosts";
+    boolean found = false;
+
+    public MyCommand() {
+        super("ls -la /system/etc/");
+    }
+
+    public boolean isFound() {
+        return found;
+    }
+
+    @Override
+    public void output(int id, String line) {
+        // generell check if line contains processName
+        if (line.contains(LINE)) {
+            Log.d(TAG, "Found it!");
+            found = true;
+        }
+    }
+
+    @Override
+    public void afterExecution(int id, int exitCode) {
+    }
+
+}
+```
+
+```java
+// start root shell
+Shell shell = Shell.startRootShell();
+
+// custom command classes:
+MyCommand myCommand = new MyCommand();
+shell.add(myCommand).waitForFinish();
+
+Log.d(TAG, "myCommand.isFound(): " + myCommand.isFound());
+
+// close root shell
+shell.close();
+```
+
+## Toolbox
+
+Toolbox is similar to busybox, but normally shipped on every Android OS. You can find toolbox commands on https://github.com/CyanogenMod/android_system_core/tree/ics/toolbox This means that these commands are designed to work on every Android OS, with a _working_ toolbox binary on it. They don't require busybox!
+
+The Toolbox class is based on this toolbox executeable and provides some nice commands as java methods like:
+
+* isRootAccessGiven()
+* killAll(String processName)
+* isProcessRunning(String processName)
+* getFilePermissions(String file)
+* setFilePermissions(String file, String permissions)
+* getSymlink(String file)
+* copyFile(String source, String destination, boolean remountAsRw, boolean preservePermissions)
+* reboot(int action)
+
+```
+Shell shell = Shell.startRootShell();
+
+Toolbox tb = new Toolbox(shell);
+
+if (tb.isRootAccessGiven()) {
+    Log.d(TAG, "Root access given!");
+} else {
+    Log.d(TAG, "No root access!");
 }
 
-exec.closeShell();
+shell.close();
+```
+
+## Binaries
+
+Android APKs are normally not designed to include executeables. But they are designed to include libraries for different architectures, which are deployed when the app is installed on the device. Androids mechanism will deploy the proper library based on the architecture of the device.
+This method only deploy files that are named like lib*.so!
+
+We are misusing Androids method to deploy our binaries, by renaming them after compilation, so that they are included in the apk and deployed based on the architecture.
+
+1. Put the sources of the executables into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/RootCommands%20Demo/jni
+2. Write your own Android.mk and Application.mk
+3. To automate the renaming process you can use a custom ruleset for Ant: https://github.com/dschuermann/root-commands/blob/master/RootCommands%20Demo/custom_rules.xml
+4. Build ``local.properties`` with sdk.dir and ndk.dir
+5. execute ``ant release`` to compile Java code, compile the native executables, rename them, and generate an apk.
+
+Now that your binaries are bundled you can use our ``BinaryCommand``:
+
+```java
+SimpleBinaryCommand binaryCommand = new SimpleBinaryCommand(this, "hello_world", "");
+
+// started as normal shell without root, but you can also start your binaries on a root
+// shell if you need more privileges!
+Shell shell = Shell.startShell();
+
+shell.add(binaryCommand).waitForFinish();
+
+Toolbox tb = new Toolbox(shell);
+if (tb.killAllBinary("hello_world")) {
+    Log.d(TAG, "Hello World daemon killed!");
+} else {
+    Log.d(TAG, "Killing failed!");
+}
+
+Log.d(TAG, tb.getFilePermissions("/system/etc/hosts"));
+
+shell.close();
 ```
 
 # Contribute

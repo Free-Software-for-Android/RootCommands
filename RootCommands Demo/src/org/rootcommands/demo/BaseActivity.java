@@ -93,7 +93,6 @@ public class BaseActivity extends Activity {
         } catch (Exception e) {
             Log.e(TAG, "Exception!", e);
         }
-
     }
 
     public void toolboxTestOnClick(View view) {
@@ -109,7 +108,6 @@ public class BaseActivity extends Activity {
             }
 
             shell.close();
-
         } catch (Exception e) {
             Log.e(TAG, "Exception!", e);
         }
@@ -131,6 +129,8 @@ public class BaseActivity extends Activity {
             } else {
                 Log.d(TAG, "Killing failed!");
             }
+            
+            Log.d(TAG, tb.getFilePermissions("/system/etc/hosts"));
 
             shell.close();
         } catch (Exception e) {
