@@ -30,3 +30,10 @@ Fork RootCommands and do a Pull Request. I will merge your changes back into the
 
 * New -> Android Project -> Create project from existing source, choose RootCommands Library
 * Add RootCommands Library as Android Lib (Properties of your project -> Android -> Library -> add RootCommands Library as android library)
+
+# Authors
+RootCommands is based on several other open source projects, thus several authors are involved:
+
+* Dominik Schürmann (RootCommands)
+* Michael Elsdörfer (Android Autostarts)
+* Stephen Erickson, Chris Ravenscroft, Adam Shanks (RootTools)

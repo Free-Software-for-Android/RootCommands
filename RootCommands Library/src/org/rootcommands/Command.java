@@ -78,16 +78,11 @@ public abstract class Command {
         Log.d(Constants.TAG, "ID: " + id + ", Output: " + line);
 
         /*
-         * Sadly sometimes toolbox is broken. This can be recognized by lines such as
-         * "Stderr: ls: /system/bin/toolbox: Value too large for defined data type". We try to
-         * detect broken versions here. It the same problem as some busybox versions have (see
-         * https://code.google.com/p/busybox-android/issues/detail?id=1). It is giving
-         * "Value too large for defined data type" on certain file operations (e.g. ls and chown) in
-         * certain directories (e.g. /data/data)
+         * Try to detect broken toolbox/busybox binaries (see
+         * https://code.google.com/p/busybox-android/issues/detail?id=1)
          * 
-         * Known roms with broken toolbox:
-         * 
-         * - stock rom Android 4 of Galaxy Note
+         * It is giving "Value too large for defined data type" on certain file operations (e.g. ls
+         * and chown) in certain directories (e.g. /data/data)
          */
         if (line.contains("Value too large for defined data type")) {
             Log.e(Constants.TAG, "Busybox is broken with high probability due to line: " + line);

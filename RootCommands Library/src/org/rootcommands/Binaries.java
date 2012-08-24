@@ -26,6 +26,7 @@ import java.io.OutputStream;
 
 import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
+import org.rootcommands.util.UnsupportedArchitectureException;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -84,17 +85,22 @@ public class Binaries {
      * 
      * @param binaryName
      *            (without -x86)
+     * @throws UnsupportedArchitectureException
      */
-    public void installBinary(String binaryName) {
+    public void installBinary(String binaryName) throws UnsupportedArchitectureException {
         File binary = new File(context.getFilesDir().getPath() + File.separator + BINARY_SUBDIR
                 + File.separator + binaryName);
 
         // if there is no binary, redeploy!
         if (!binary.exists()) {
+            Log.d(Constants.TAG, "Binary does not exist! Deploy it!");
             deployBinary(binaryName);
         } else {
+            Log.d(Constants.TAG, "Binary exists!");
             // redeploy if the package is newer than the binary deployed
             if (getBinaryVersion(binaryName) < getPackageVersion()) {
+                Log.d(Constants.TAG,
+                        "Saved binary version is older than package version! Redeploy!");
                 deployBinary(binaryName);
             }
         }
@@ -108,16 +114,19 @@ public class Binaries {
      * need root to set executable permission!
      * 
      * @param binaryName
+     * @throws UnsupportedArchitectureException
      */
     @SuppressLint("NewApi")
-    public void deployBinary(String binaryName) {
+    public void deployBinary(String binaryName) throws UnsupportedArchitectureException {
         String arch = getArch();
 
         InputStream src = null;
         try {
             src = context.getAssets().open(binaryName + "-" + arch);
         } catch (Exception e) {
-            Log.e(Constants.TAG, "Does the binary exist for this architecture?", e);
+            Log.e(Constants.TAG, "Binary for architecture " + arch + " could not be found!");
+            throw new UnsupportedArchitectureException("Binary for architecture " + arch
+                    + " could not be found!");
         }
 
         FileOutputStream dst = null;
