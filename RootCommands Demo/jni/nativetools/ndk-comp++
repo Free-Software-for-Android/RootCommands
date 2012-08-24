@@ -1,0 +1,18 @@
+#!/bin/bash 
+ 
+OS='darwin-x86'
+ANDROIDSDK='android-3'
+ 
+PROGDIR=`dirname $0`
+PROGDIR=`cd $PROGDIR && pwd`
+ 
+ARMEABIGCC=$PROGDIR/toolchains/arm-eabi-4.4.0/prebuilt/$OS/bin/arm-eabi-g++
+ARMEABILIB=$PROGDIR/platforms/$ANDROIDSDK/arch-arm/usr/lib
+ARMEABIINC=$PROGDIR/platforms/$ANDROIDSDK/arch-arm/usr/include
+ARMEABICRT=$PROGDIR/platforms/$ANDROIDSDK/arch-arm/usr/lib/crtbegin_dynamic.o
+ 
+LINKER=/system/bin/linker
+ 
+echo "GCC:"$ARMEABIGCC "LIB:"$ARMEABILIB "LINKER":$LINKER "PARAMS:"$@
+ 
+$ARMEABIGCC $@ -Wl,-rpath-link=$ARMEABILIB,-dynamic-linker=$LINKER -L$ARMEABILIB $ARMEABICRT -I$ARMEABIINC -nostdlib -lc
