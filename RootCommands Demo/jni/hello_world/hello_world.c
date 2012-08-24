@@ -19,11 +19,11 @@ char str[10];
 }
   
 int main(void) {
-    __android_log_print(ANDROID_LOG_INFO,"RootCommands", "Starting Hello World daemon...");
+    __android_log_print(ANDROID_LOG_INFO,"Demo", "Starting Hello World daemon...");
     
     daemonize();
     
-    __android_log_print(ANDROID_LOG_INFO,"RootCommands", "Hello World daemon started!");
+    __android_log_print(ANDROID_LOG_INFO,"Demo", "Hello World daemon started!");
     
     while (1) {
       sleep(1);

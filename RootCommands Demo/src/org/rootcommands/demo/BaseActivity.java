@@ -16,14 +16,11 @@
 
 package org.rootcommands.demo;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
 import org.rootcommands.Shell;
 import org.rootcommands.Toolbox;
+import org.rootcommands.command.Command;
 import org.rootcommands.command.SimpleBinaryCommand;
 import org.rootcommands.command.SimpleCommand;
-import org.rootcommands.util.Constants;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -31,6 +28,8 @@ import android.util.Log;
 import android.view.View;
 
 public class BaseActivity extends Activity {
+    public static final String TAG = "Demo";
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -38,112 +37,104 @@ public class BaseActivity extends Activity {
         setContentView(R.layout.main);
     }
 
-    public void toolboxTestOnClick(View view) {
-        // ShellExecutor exec = new ShellExecutor(true, 100, null, null, 25000);
-        // exec.openShell();
+    private class MyCommand extends Command {
+        private static final String LINE = "hosts";
+        boolean found = false;
 
-        // Toolbox toolbox = new Toolbox(exec);
-        //
-        // Log.d(Constants.TAG, "access?:" + toolbox.isRootAccessGiven());
-        //
-        // Log.d(Constants.TAG, "access?:" + toolbox.isRootAccessGiven());
+        public MyCommand() {
+            super("ls -la /system/etc/");
+        }
 
-        // Log.d(Constants.TAG, "kill blank_webserver?:" + toolbox.killProcess("blank_webserver"));
+        public boolean isFound() {
+            return found;
+        }
 
-        // exec.closeShell();
+        @Override
+        public void output(int id, String line) {
+            // generell check if line contains processName
+            if (line.contains(LINE)) {
+                Log.d(TAG, "Found it!");
+                found = true;
+            }
+        }
 
-        // RootTools.debugMode = true;
+        @Override
+        public void afterExecution(int id, int exitCode) {
+        }
 
-        SimpleCommand command0 = new SimpleCommand("echo this is a command",
-                "echo this is another command");
+    }
 
-        SimpleCommand command1 = new SimpleCommand("toolbox ls");
-
-        SimpleCommand command2 = new SimpleCommand("ls -la");
-
-        SimpleCommand command3 = new SimpleCommand("echo Value too large for defined data type");
-
-        SimpleCommand command4 = new SimpleCommand(
-                "/data/data/org.rootcommands.demo/lib/libnativetools.so fe /data/data/org.rootcommands.demo/lib/libnativetools.so");
-
-        SimpleCommand command5 = new SimpleCommand("ls -la /data/data/org.rootcommands.demo/lib/");
-
-        Shell shell = null;
+    public void commandsTestOnClick(View view) {
         try {
-            shell = Shell.startCustomShell("su");
+            // start root shell
+            Shell shell = Shell.startRootShell();
+
+            // simple commands
+            SimpleCommand command0 = new SimpleCommand("echo this is a command",
+                    "echo this is another command");
+            SimpleCommand command1 = new SimpleCommand("toolbox ls");
+            SimpleCommand command2 = new SimpleCommand("ls -la /system/etc/hosts");
+
+            shell.add(command0).waitForFinish();
+            shell.add(command1).waitForFinish();
+            shell.add(command2).waitForFinish();
+
+            Log.d(TAG, "Output of command2: " + command2.getOutput());
+            Log.d(TAG, "Exit code of command2: " + command2.getExitCode());
+
+            // custom command classes:
+            MyCommand myCommand = new MyCommand();
+            shell.add(myCommand).waitForFinish();
+
+            Log.d(TAG, "myCommand.isFound(): " + myCommand.isFound());
+
+            // close root shell
+            shell.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Exception!", e);
+        }
+
+    }
+
+    public void toolboxTestOnClick(View view) {
+        try {
+            Shell shell = Shell.startRootShell();
 
             Toolbox tb = new Toolbox(shell);
 
             if (tb.isRootAccessGiven()) {
-                Log.d(Constants.TAG, "joooooo!");
+                Log.d(TAG, "Root access given!");
             } else {
-                Log.d(Constants.TAG, "nope!");
+                Log.d(TAG, "No root access!");
             }
-
-            if (tb.killAll("blank_webserver")) {
-                Log.d(Constants.TAG, "killed!");
-            } else {
-                Log.d(Constants.TAG, "nope!");
-            }
-
-            shell.add(command4).waitForFinish();
-            shell.add(command5).waitForFinish();
 
             shell.close();
 
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.e(TAG, "Exception!", e);
         }
-        // try {
-        // shell = Shell.startRootShell();
-        //
-        // shell.add(command0);
-        // shell.add(command1);
-        // shell.add(command2);
-        //
-        // } catch (IOException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // }
-        //
-        // try {
-        // command0.waitForFinish();
-        // command1.waitForFinish();
-        // command2.waitForFinish();
-        //
-        // } catch (InterruptedException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // } catch (TimeoutException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // }
-
-    }
-
-    public void otherTestOnClick(View view) {
-
     }
 
     public void binariesTestOnClick(View view) {
-        SimpleBinaryCommand binaryCommand = new SimpleBinaryCommand(this, "hello_world", "");
-
         try {
-            Shell shell = Shell.startCustomShell("su");
+            SimpleBinaryCommand binaryCommand = new SimpleBinaryCommand(this, "hello_world", "");
+
+            // started as normal shell without root, but you can also start your binaries on a root
+            // shell if you need more privileges!
+            Shell shell = Shell.startShell();
 
             shell.add(binaryCommand).waitForFinish();
 
             Toolbox tb = new Toolbox(shell);
             if (tb.killAllBinary("hello_world")) {
-                Log.d(Constants.TAG, "Hello World daemon killed!");
+                Log.d(TAG, "Hello World daemon killed!");
             } else {
-                Log.d(Constants.TAG, "Killing failed!");
+                Log.d(TAG, "Killing failed!");
             }
 
             shell.close();
         } catch (Exception e) {
-            Log.e(Constants.TAG, "Exception!", e);
+            Log.e(TAG, "Exception!", e);
         }
     }
 }

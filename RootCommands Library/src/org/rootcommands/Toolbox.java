@@ -611,8 +611,8 @@ public class Toolbox {
         }
     }
 
-    public abstract class WithWritePermission {
-        abstract void whileHavingWritePermission();
+    public abstract class WithPermissions {
+        abstract void whileHavingPermissions();
     }
 
     /**
@@ -624,16 +624,15 @@ public class Toolbox {
      * @throws TimeoutException
      * @throws IOException
      */
-    public void withPermission(String file, String permission,
-            WithWritePermission withWritePermission) throws BrokenBusyboxException,
-            TimeoutException, IOException {
+    public void withPermission(String file, String permission, WithPermissions withWritePermission)
+            throws BrokenBusyboxException, TimeoutException, IOException {
         String oldPermissions = getFilePermissions(file);
 
-        // set permissions (If set to 777, then Dalvik VM can also write to that file!)
+        // set permissions (If set to 666, then Dalvik VM can also write to that file!)
         setFilePermissions(file, permission);
 
         // execute user defined code
-        withWritePermission.whileHavingWritePermission();
+        withWritePermission.whileHavingPermissions();
 
         // set back to old permissions
         setFilePermissions(file, oldPermissions);
@@ -641,7 +640,7 @@ public class Toolbox {
 
     /**
      * Execute user defined Java code while having temporary write permissions on a file using chmod
-     * 777
+     * 666
      * 
      * @param file
      * @param withWritePermission
@@ -649,9 +648,9 @@ public class Toolbox {
      * @throws TimeoutException
      * @throws IOException
      */
-    public void withWritePermissions(String file, WithWritePermission withWritePermission)
+    public void withWritePermissions(String file, WithPermissions withWritePermission)
             throws BrokenBusyboxException, TimeoutException, IOException {
-        withPermission(file, "777", withWritePermission);
+        withPermission(file, "666", withWritePermission);
     }
 
     /**
@@ -664,10 +663,10 @@ public class Toolbox {
      */
     public void setSystemClock(final long millis) throws BrokenBusyboxException, TimeoutException,
             IOException {
-        withPermission("/dev/alarm", "666", new WithWritePermission() {
+        withWritePermissions("/dev/alarm", new WithPermissions() {
 
             @Override
-            void whileHavingWritePermission() {
+            void whileHavingPermissions() {
                 SystemClock.setCurrentTimeMillis(millis);
             }
         });
@@ -683,10 +682,10 @@ public class Toolbox {
      */
     public void adjustSystemClock(final long offset) throws BrokenBusyboxException,
             TimeoutException, IOException {
-        withPermission("/dev/alarm", "666", new WithWritePermission() {
+        withWritePermissions("/dev/alarm", new WithPermissions() {
 
             @Override
-            void whileHavingWritePermission() {
+            void whileHavingPermissions() {
                 SystemClock.setCurrentTimeMillis(System.currentTimeMillis() + offset);
             }
         });

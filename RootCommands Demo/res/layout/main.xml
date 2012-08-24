@@ -14,15 +14,15 @@
         android:id="@+id/btest_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="toolboxTestOnClick"
-        android:text="Toolbox Test" />
+        android:onClick="commandsTestOnClick"
+        android:text="Commands Test" />
 
     <Button
         android:id="@+id/btest_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="otherTestOnClick"
-        android:text="Other Tests" />
+        android:onClick="toolboxTestOnClick"
+        android:text="Toolbox Tests" />
 
     <Button
         android:id="@+id/btest_button"
