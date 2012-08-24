@@ -1,7 +1,5 @@
 # RootCommands
 
-_Currently RootCommands is not ready to be used in production_
-
 This is a library to simplify the execution of root commands.
 It is a Java wrapper around native executables used to execute root commands.
 

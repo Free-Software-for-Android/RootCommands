@@ -33,6 +33,7 @@ import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
 
 import android.os.StatFs;
+import android.os.SystemClock;
 
 /**
  * All methods in this class are working with Androids toolbox. Toolbox is similar to busybox, but
@@ -615,6 +616,30 @@ public class Toolbox {
     }
 
     /**
+     * Execute user defined Java code while having temporary permissions on a file
+     * 
+     * @param file
+     * @param withWritePermission
+     * @throws BrokenBusyboxException
+     * @throws TimeoutException
+     * @throws IOException
+     */
+    public void withPermission(String file, String permission,
+            WithWritePermission withWritePermission) throws BrokenBusyboxException,
+            TimeoutException, IOException {
+        String oldPermissions = getFilePermissions(file);
+
+        // set permissions (If set to 777, then Dalvik VM can also write to that file!)
+        setFilePermissions(file, permission);
+
+        // execute user defined code
+        withWritePermission.whileHavingWritePermission();
+
+        // set back to old permissions
+        setFilePermissions(file, oldPermissions);
+    }
+
+    /**
      * Execute user defined Java code while having temporary write permissions on a file using chmod
      * 777
      * 
@@ -626,17 +651,45 @@ public class Toolbox {
      */
     public void withWritePermissions(String file, WithWritePermission withWritePermission)
             throws BrokenBusyboxException, TimeoutException, IOException {
+        withPermission(file, "777", withWritePermission);
+    }
 
-        String oldPermissions = getFilePermissions(file);
+    /**
+     * Sets system clock using /dev/alarm
+     * 
+     * @param millis
+     * @throws BrokenBusyboxException
+     * @throws TimeoutException
+     * @throws IOException
+     */
+    public void setSystemClock(final long millis) throws BrokenBusyboxException, TimeoutException,
+            IOException {
+        withPermission("/dev/alarm", "666", new WithWritePermission() {
 
-        // set write permissions for everyone, then Dalvik VM can also write to that file!
-        setFilePermissions(file, "777");
+            @Override
+            void whileHavingWritePermission() {
+                SystemClock.setCurrentTimeMillis(millis);
+            }
+        });
+    }
 
-        // execute user defined code
-        withWritePermission.whileHavingWritePermission();
+    /**
+     * Adjust system clock by offset using /dev/alarm
+     * 
+     * @param millis
+     * @throws BrokenBusyboxException
+     * @throws TimeoutException
+     * @throws IOException
+     */
+    public void adjustSystemClock(final long offset) throws BrokenBusyboxException,
+            TimeoutException, IOException {
+        withPermission("/dev/alarm", "666", new WithWritePermission() {
 
-        // set back to old permissions
-        setFilePermissions(file, oldPermissions);
+            @Override
+            void whileHavingWritePermission() {
+                SystemClock.setCurrentTimeMillis(System.currentTimeMillis() + offset);
+            }
+        });
     }
 
     /**
