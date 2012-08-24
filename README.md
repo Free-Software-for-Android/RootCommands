@@ -94,7 +94,7 @@ The Toolbox class is based on this toolbox executeable and provides some nice co
 * withWritePermissions(String file, WithPermissions withWritePermission)
 * setSystemClock(long millis)
 * remount(String file, String mountType)
-...
+* ...
 
 ```java
 Shell shell = Shell.startRootShell();
@@ -162,4 +162,4 @@ RootCommands is based on several other open source projects, thus several author
 
 * Dominik Schürmann (RootCommands)
 * Michael Elsdörfer (Android Autostarts)
-* Stephen Erickson, Chris Ravenscroft, Adam Shanks (RootTools)
+* Stephen Erickson, Chris Ravenscroft, Adam Shanks, Jeremy Lakeman (RootTools)
