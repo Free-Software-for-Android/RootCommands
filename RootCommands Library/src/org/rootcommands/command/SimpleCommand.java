@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2012 Dominik Schürmann <dominik@dominikschuermann.de>
- * Copyright (c) 2012 Stephen Erickson, Chris Ravenscroft, Adam Shanks, Jeremy Lakeman (RootTools)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.rootcommands;
+package org.rootcommands.command;
 
 public class SimpleCommand extends Command {
     private StringBuilder sb = new StringBuilder();

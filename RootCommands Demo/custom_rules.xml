@@ -21,7 +21,7 @@
                 <exclude name="**/*.so"/>
             </fileset>
             <!-- Rename all files in the subfolders (not the folders itself!) -->
-            <mapper type="regexp" from="^([^/]*)/([^/]*)$$" to="\1/lib\2.so"/>
+            <mapper type="regexp" from="^([^/]*)/([^/]*)$$" to="\1/lib\2_bin.so"/>
         </move>
     </target>
 

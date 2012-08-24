@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.rootcommands.command.Command;
 import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
 import org.rootcommands.util.RootAccessDeniedException;

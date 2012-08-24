@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-package org.rootcommands;
+package org.rootcommands.command;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeoutException;
 
+import org.rootcommands.Shell;
 import org.rootcommands.util.BrokenBusyboxException;
 import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;

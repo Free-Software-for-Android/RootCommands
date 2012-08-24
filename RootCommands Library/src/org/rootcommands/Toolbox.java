@@ -25,6 +25,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.rootcommands.command.BinaryCommand;
+import org.rootcommands.command.Command;
+import org.rootcommands.command.SimpleCommand;
 import org.rootcommands.util.BrokenBusyboxException;
 import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
@@ -177,6 +180,22 @@ public class Toolbox {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Kill a running binary
+     * 
+     * See README for more information how to use your own binaries!
+     * 
+     * @param binaryName
+     * @return
+     * @throws BrokenBusyboxException
+     * @throws TimeoutException
+     * @throws IOException
+     */
+    public boolean killAllBinary(String binaryName) throws BrokenBusyboxException,
+            TimeoutException, IOException {
+        return killAll(BinaryCommand.BINARY_PREFIX + binaryName + BinaryCommand.BINARY_SUFFIX);
     }
 
     /**

@@ -19,9 +19,10 @@ package org.rootcommands.demo;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
-import org.rootcommands.SimpleCommand;
 import org.rootcommands.Shell;
 import org.rootcommands.Toolbox;
+import org.rootcommands.command.SimpleBinaryCommand;
+import org.rootcommands.command.SimpleCommand;
 import org.rootcommands.util.Constants;
 
 import android.app.Activity;
@@ -62,6 +63,11 @@ public class BaseActivity extends Activity {
 
         SimpleCommand command3 = new SimpleCommand("echo Value too large for defined data type");
 
+        SimpleCommand command4 = new SimpleCommand(
+                "/data/data/org.rootcommands.demo/lib/libnativetools.so fe /data/data/org.rootcommands.demo/lib/libnativetools.so");
+
+        SimpleCommand command5 = new SimpleCommand("ls -la /data/data/org.rootcommands.demo/lib/");
+
         Shell shell = null;
         try {
             shell = Shell.startCustomShell("su");
@@ -80,7 +86,8 @@ public class BaseActivity extends Activity {
                 Log.d(Constants.TAG, "nope!");
             }
 
-            // shell.add(command3).waitForFinish();
+            shell.add(command4).waitForFinish();
+            shell.add(command5).waitForFinish();
 
             shell.close();
 
@@ -120,6 +127,23 @@ public class BaseActivity extends Activity {
     }
 
     public void binariesTestOnClick(View view) {
+        SimpleBinaryCommand binaryCommand = new SimpleBinaryCommand(this, "hello_world", "");
 
+        try {
+            Shell shell = Shell.startCustomShell("su");
+
+            shell.add(binaryCommand).waitForFinish();
+
+            Toolbox tb = new Toolbox(shell);
+            if (tb.killAllBinary("hello_world")) {
+                Log.d(Constants.TAG, "Hello World daemon killed!");
+            } else {
+                Log.d(Constants.TAG, "Killing failed!");
+            }
+
+            shell.close();
+        } catch (Exception e) {
+            Log.e(Constants.TAG, "Exception!", e);
+        }
     }
 }

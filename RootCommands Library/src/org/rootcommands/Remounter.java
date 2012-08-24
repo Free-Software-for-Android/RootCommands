@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
 
+import org.rootcommands.command.SimpleCommand;
 import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
 
