@@ -1,7 +1,6 @@
 # RootCommands
 
-This is a library to simplify the execution of root commands.
-It is a Java wrapper around native executables used to execute root commands.
+This is a library to simplify the execution of root commands. It is a Java wrapper around native executables and can be used to execute specific root commands.
 
 # Add the lib to your project
 
@@ -9,11 +8,12 @@ Put the newest jar from the Downloads section (https://github.com/dschuermann/ro
 
 ## Alternative way
 
-* New -> Android Project -> Create project from existing source, choose RootCommands Library
-* Add RootCommands Library as Android Lib (Properties of your project -> Android -> Library -> add RootCommands Library as android library)
-
+* New -> Android Project -> Create project from existing source, choose ``RootCommands Library``
+* Add ``RootCommands Library`` as Android Library (Properties of your project -> Android -> Library -> add ``RootCommands Library`` as android library)
 
 # Examples
+
+To see RootCommands in action, compile the ``RootCommands Demo`` project and observe the logcat output.
 
 ## Simple Commands
 
