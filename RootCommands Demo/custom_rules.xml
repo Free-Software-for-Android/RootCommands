@@ -13,7 +13,7 @@
         <!-- Build binaries using NDK -->
         <exec executable="${ndk.dir}/ndk-build" failonerror="true"/>
 
-        <!-- Rename binaries from for example tcpdump to libtcpdump_bin.so!
+        <!-- Rename binaries from for example hello_world to libhello_world_bin.so!
         Then they are packaged in the apk and deployed on the device in the lib folder! -->
         <move todir="${jar.libs.absolute.dir}" overwrite="true" verbose="true" failonerror="true" includeemptydirs="false">
             <fileset dir="${jar.libs.absolute.dir}">

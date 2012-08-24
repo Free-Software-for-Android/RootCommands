@@ -114,8 +114,8 @@ shell.close();
 
 ## Binaries
 
-Android APKs are normally not designed to include native executeables. But they are designed to include native libraries for different architectures, which are deployed when the app is installed on the device. Androids mechanism will deploy the proper native library based on the architecture of the device.
-This method only deploy files that are named like ``lib*.so``, which are included from the libs folder of your project.
+Android APKs are normally not designed to include native binaries. But they are designed to include native libraries for different architectures, which are deployed when the app is installed on the device. Androids mechanism will deploy the proper native library based on the architecture of the device.
+This method only deploys files that are named like ``lib*.so``, which are included from the libs folder of your project.
 
 We are missusing Androids library method to deploy our native binaries, by renaming them after compilation, so that they are included in the apk and deployed based on the architecture.
 
@@ -127,7 +127,7 @@ Note: Permission and owner of deployed files: ``-rwxr-xr-x system   system      
 4. Build ``local.properties`` with sdk.dir and ndk.dir
 5. Execute ``ant release`` to compile Java code, compile the native executables, rename them, and generate an apk.
 
-Now that your binaries are bundled you can use our ``BinaryCommand`` like in the following example:
+Now that your binaries are bundled, you can use our ``SimpleBinaryCommand`` like in the following example:
 
 ```java
 SimpleBinaryCommand binaryCommand = new SimpleBinaryCommand(this, "hello_world", "");
