@@ -79,7 +79,7 @@ shell.close();
 
 ## Toolbox
 
-Toolbox is similar to busybox, but normally shipped on every Android OS. You can find toolbox commands on https://github.com/CyanogenMod/android_system_core/tree/ics/toolbox This means that these commands are designed to work on every Android OS, with a _working_ toolbox binary on it. They don't require busybox!
+Toolbox is similar to busybox, but normally shipped on every Android OS. You can find toolbox commands on https://github.com/CyanogenMod/android_system_core/tree/ics/toolbox . This means that these commands are designed to work on every Android OS, with a _working_ toolbox binary on it. They don't require busybox!
 
 The Toolbox class is based on this toolbox executeable and provides some nice commands as java methods like:
 
@@ -91,8 +91,12 @@ The Toolbox class is based on this toolbox executeable and provides some nice co
 * getSymlink(String file)
 * copyFile(String source, String destination, boolean remountAsRw, boolean preservePermissions)
 * reboot(int action)
+* withWritePermissions(String file, WithPermissions withWritePermission)
+* setSystemClock(long millis)
+* remount(String file, String mountType)
+...
 
-```
+```java
 Shell shell = Shell.startRootShell();
 
 Toolbox tb = new Toolbox(shell);
@@ -108,18 +112,18 @@ shell.close();
 
 ## Binaries
 
-Android APKs are normally not designed to include executeables. But they are designed to include libraries for different architectures, which are deployed when the app is installed on the device. Androids mechanism will deploy the proper library based on the architecture of the device.
-This method only deploy files that are named like lib*.so!
+Android APKs are normally not designed to include native executeables. But they are designed to include native libraries for different architectures, which are deployed when the app is installed on the device. Androids mechanism will deploy the proper native library based on the architecture of the device.
+This method only deploy files that are named like ``lib*.so``, which are included from the libs folder of your project.
 
-We are misusing Androids method to deploy our binaries, by renaming them after compilation, so that they are included in the apk and deployed based on the architecture.
+We are missusing Androids library method to deploy our native binaries, by renaming them after compilation, so that they are included in the apk and deployed based on the architecture.
 
-1. Put the sources of the executables into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/RootCommands%20Demo/jni
+1. Put the sources of the native binaries into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/RootCommands%20Demo/jni
 2. Write your own Android.mk and Application.mk
-3. To automate the renaming process you can use a custom ruleset for Ant: https://github.com/dschuermann/root-commands/blob/master/RootCommands%20Demo/custom_rules.xml
+3. To automate the renaming process use a custom ruleset for Ant: https://github.com/dschuermann/root-commands/blob/master/RootCommands%20Demo/custom_rules.xml . This will rename the files from ``*`` to ``lib*_bin.so``.
 4. Build ``local.properties`` with sdk.dir and ndk.dir
-5. execute ``ant release`` to compile Java code, compile the native executables, rename them, and generate an apk.
+5. Execute ``ant release`` to compile Java code, compile the native executables, rename them, and generate an apk.
 
-Now that your binaries are bundled you can use our ``BinaryCommand``:
+Now that your binaries are bundled you can use our ``BinaryCommand`` like in the following example:
 
 ```java
 SimpleBinaryCommand binaryCommand = new SimpleBinaryCommand(this, "hello_world", "");
