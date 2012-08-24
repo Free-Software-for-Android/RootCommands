@@ -107,6 +107,8 @@ if (tb.isRootAccessGiven()) {
     Log.d(TAG, "No root access!");
 }
 
+Log.d(TAG, tb.getFilePermissions("/system/etc/hosts"));
+
 shell.close();
 ```
 
@@ -116,6 +118,8 @@ Android APKs are normally not designed to include native executeables. But they 
 This method only deploy files that are named like ``lib*.so``, which are included from the libs folder of your project.
 
 We are missusing Androids library method to deploy our native binaries, by renaming them after compilation, so that they are included in the apk and deployed based on the architecture.
+
+Note: Permission and owner of deployed files: ``-rwxr-xr-x system   system      38092 2012-09-24 19:51 libhello_world_bin.so``
 
 1. Put the sources of the native binaries into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/RootCommands%20Demo/jni
 2. Write your own Android.mk and Application.mk
@@ -140,8 +144,6 @@ if (tb.killAllBinary("hello_world")) {
 } else {
     Log.d(TAG, "Killing failed!");
 }
-
-Log.d(TAG, tb.getFilePermissions("/system/etc/hosts"));
 
 shell.close();
 ```

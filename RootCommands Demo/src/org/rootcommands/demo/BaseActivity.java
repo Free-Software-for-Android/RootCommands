@@ -107,6 +107,8 @@ public class BaseActivity extends Activity {
                 Log.d(TAG, "No root access!");
             }
 
+            Log.d(TAG, tb.getFilePermissions("/system/etc/hosts"));
+
             shell.close();
         } catch (Exception e) {
             Log.e(TAG, "Exception!", e);
@@ -129,8 +131,6 @@ public class BaseActivity extends Activity {
             } else {
                 Log.d(TAG, "Killing failed!");
             }
-            
-            Log.d(TAG, tb.getFilePermissions("/system/etc/hosts"));
 
             shell.close();
         } catch (Exception e) {
