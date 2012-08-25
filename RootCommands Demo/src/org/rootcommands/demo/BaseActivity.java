@@ -16,6 +16,7 @@
 
 package org.rootcommands.demo;
 
+import org.rootcommands.RootCommands;
 import org.rootcommands.Shell;
 import org.rootcommands.Toolbox;
 import org.rootcommands.command.Command;
@@ -34,6 +35,9 @@ public class BaseActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        // enable debug logging
+        RootCommands.DEBUG = true;
     }
 
     private class MyCommand extends Command {
