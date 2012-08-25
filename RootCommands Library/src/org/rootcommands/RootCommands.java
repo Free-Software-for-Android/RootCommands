@@ -18,7 +18,7 @@ package org.rootcommands;
 
 public class RootCommands {
     public static boolean DEBUG = false;
-    public static int defaultTimeout = 10000;
+    public static int DEFAULT_TIMEOUT = 10000;
 
     public static String TAG = "RootCommands";
 }

@@ -32,7 +32,7 @@ public abstract class Command {
     boolean brokenBusyboxDetected = false;
     int exitCode;
     int id;
-    int timeout = RootCommands.defaultTimeout;
+    int timeout = RootCommands.DEFAULT_TIMEOUT;
     Shell shell = null;
 
     public Command(String... command) {

@@ -15,6 +15,13 @@ Put the newest jar from the Downloads section (https://github.com/dschuermann/ro
 
 To see RootCommands in action, compile the ``RootCommands Demo`` project and observe the logcat output.
 
+## Debug Mode
+
+You can enable debug logging in RootCommands by the following line:
+```jave
+RootCommands.DEBUG = true;
+```
+
 ## Simple Commands
 
 You can instantiate SimpleCommands with the shell commands you want to execute. This is a very basic approach of executing something on a shell.
