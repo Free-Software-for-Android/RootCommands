@@ -22,6 +22,16 @@ You can enable debug logging in RootCommands by the following line:
 RootCommands.DEBUG = true;
 ```
 
+## Root Access check
+
+This tries to find the su binary, opens a root shell and checks for root uid.
+
+```java
+if (RootCommands.rootAccessGiven()) {
+    // your code
+}
+```
+
 ## Simple Commands
 
 You can instantiate SimpleCommands with the shell commands you want to execute. This is a very basic approach of executing something on a shell.
