@@ -18,7 +18,7 @@ To see RootCommands in action, compile the ``RootCommands Demo`` project and obs
 ## Debug Mode
 
 You can enable debug logging in RootCommands by the following line:
-```jave
+```java
 RootCommands.DEBUG = true;
 ```
 
