@@ -29,7 +29,6 @@ import org.rootcommands.command.BinaryCommand;
 import org.rootcommands.command.Command;
 import org.rootcommands.command.SimpleCommand;
 import org.rootcommands.util.BrokenBusyboxException;
-import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
 
 import android.os.StatFs;
@@ -132,12 +131,12 @@ public class Toolbox {
                         String pid = psMatcher.group(1);
                         // add to pids list
                         pids.add(pid);
-                        Log.d(Constants.TAG, "Found pid: " + pid);
+                        Log.d(RootCommands.TAG, "Found pid: " + pid);
                     } else {
-                        Log.d(Constants.TAG, "Matching in ps command failed!");
+                        Log.d(RootCommands.TAG, "Matching in ps command failed!");
                     }
                 } catch (Exception e) {
-                    Log.e(Constants.TAG, "Error with regex!", e);
+                    Log.e(RootCommands.TAG, "Error with regex!", e);
                 }
             }
         }
@@ -162,7 +161,7 @@ public class Toolbox {
      */
     public boolean killAll(String processName) throws BrokenBusyboxException, TimeoutException,
             IOException {
-        Log.d(Constants.TAG, "Killing process " + processName);
+        Log.d(RootCommands.TAG, "Killing process " + processName);
 
         PsCommand psCommand = new PsCommand(processName);
         shell.add(psCommand).waitForFinish();
@@ -179,6 +178,7 @@ public class Toolbox {
                 return false;
             }
         } else {
+            Log.d(RootCommands.TAG, "No pid found! Nothing was killed!");
             return false;
         }
     }
@@ -210,7 +210,7 @@ public class Toolbox {
      * @throws TimeoutException
      *             (Could not determine if the process is running)
      */
-    boolean isProcessRunning(final String processName) throws BrokenBusyboxException,
+    public boolean isProcessRunning(String processName) throws BrokenBusyboxException,
             TimeoutException, IOException {
         PsCommand psCommand = new PsCommand(processName);
         shell.add(psCommand).waitForFinish();
@@ -221,6 +221,21 @@ public class Toolbox {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Checks if binary is running
+     * 
+     * @param binaryName
+     * @return
+     * @throws BrokenBusyboxException
+     * @throws TimeoutException
+     * @throws IOException
+     */
+    public boolean isBinaryRunning(String binaryName) throws BrokenBusyboxException,
+            TimeoutException, IOException {
+        return isProcessRunning(BinaryCommand.BINARY_PREFIX + binaryName
+                + BinaryCommand.BINARY_SUFFIX);
     }
 
     /**
@@ -320,7 +335,7 @@ public class Toolbox {
                     if (lsMatcher.find()) {
                         permissions = convertPermissions(lsMatcher.group(1));
 
-                        Log.d(Constants.TAG, "Found permissions: " + permissions);
+                        Log.d(RootCommands.TAG, "Found permissions: " + permissions);
 
                         // if there is more it could be a symlink
                         String symlinkGroup = lsMatcher.group(2);
@@ -334,16 +349,16 @@ public class Toolbox {
                              */
                             if (symlinkMatcher.find()) {
                                 symlink = symlinkMatcher.group(1);
-                                Log.d(Constants.TAG, "Symlink found: " + symlink);
+                                Log.d(RootCommands.TAG, "Symlink found: " + symlink);
                             } else {
-                                Log.d(Constants.TAG, "No symlink found!");
+                                Log.d(RootCommands.TAG, "No symlink found!");
                             }
                         }
                     } else {
-                        Log.d(Constants.TAG, "Matching in ls command failed!");
+                        Log.d(RootCommands.TAG, "Matching in ls command failed!");
                     }
                 } catch (Exception e) {
-                    Log.e(Constants.TAG, "Error with regex!", e);
+                    Log.e(RootCommands.TAG, "Error with regex!", e);
                 }
             }
         }
@@ -366,12 +381,12 @@ public class Toolbox {
      */
     public String getFilePermissions(String file) throws BrokenBusyboxException, TimeoutException,
             IOException {
-        Log.d(Constants.TAG, "Checking permissions for " + file);
+        Log.d(RootCommands.TAG, "Checking permissions for " + file);
 
         String permissions = null;
 
         if (fileExists(file)) {
-            Log.d(Constants.TAG, file + " was found.");
+            Log.d(RootCommands.TAG, file + " was found.");
 
             LsCommand lsCommand = new LsCommand(file);
             shell.add(lsCommand).waitForFinish();
@@ -396,7 +411,7 @@ public class Toolbox {
      */
     public boolean setFilePermissions(String file, String permissions)
             throws BrokenBusyboxException, TimeoutException, IOException {
-        Log.d(Constants.TAG, "Set permissions of " + file + " to " + permissions);
+        Log.d(RootCommands.TAG, "Set permissions of " + file + " to " + permissions);
 
         SimpleCommand chmodCommand = new SimpleCommand("chmod " + permissions + " " + file);
         shell.add(chmodCommand).waitForFinish();
@@ -422,12 +437,12 @@ public class Toolbox {
      */
     public String getSymlink(String file) throws BrokenBusyboxException, TimeoutException,
             IOException {
-        Log.d(Constants.TAG, "Find symlink for " + file);
+        Log.d(RootCommands.TAG, "Find symlink for " + file);
 
         String symlink = null;
 
         if (fileExists(file)) {
-            Log.d(Constants.TAG, file + " was found.");
+            Log.d(RootCommands.TAG, file + " was found.");
 
             LsCommand lsCommand = new LsCommand(file);
             shell.add(lsCommand).waitForFinish();
@@ -553,7 +568,7 @@ public class Toolbox {
             shell.add(rebootCommand).waitForFinish();
 
             if (rebootCommand.getExitCode() == -1) {
-                Log.e(Constants.TAG, "Reboot failed!");
+                Log.e(RootCommands.TAG, "Reboot failed!");
             }
         }
     }
@@ -619,12 +634,12 @@ public class Toolbox {
      * Execute user defined Java code while having temporary permissions on a file
      * 
      * @param file
-     * @param withWritePermission
+     * @param withPermissions
      * @throws BrokenBusyboxException
      * @throws TimeoutException
      * @throws IOException
      */
-    public void withPermission(String file, String permission, WithPermissions withWritePermission)
+    public void withPermission(String file, String permission, WithPermissions withPermissions)
             throws BrokenBusyboxException, TimeoutException, IOException {
         String oldPermissions = getFilePermissions(file);
 
@@ -632,7 +647,7 @@ public class Toolbox {
         setFilePermissions(file, permission);
 
         // execute user defined code
-        withWritePermission.whileHavingPermissions();
+        withPermissions.whileHavingPermissions();
 
         // set back to old permissions
         setFilePermissions(file, oldPermissions);
@@ -643,14 +658,14 @@ public class Toolbox {
      * 666
      * 
      * @param file
-     * @param withWritePermission
+     * @param withWritePermissions
      * @throws BrokenBusyboxException
      * @throws TimeoutException
      * @throws IOException
      */
-    public void withWritePermissions(String file, WithPermissions withWritePermission)
+    public void withWritePermissions(String file, WithPermissions withWritePermissions)
             throws BrokenBusyboxException, TimeoutException, IOException {
-        withPermission(file, "666", withWritePermission);
+        withPermission(file, "666", withWritePermissions);
     }
 
     /**
@@ -675,7 +690,7 @@ public class Toolbox {
     /**
      * Adjust system clock by offset using /dev/alarm
      * 
-     * @param millis
+     * @param offset
      * @throws BrokenBusyboxException
      * @throws TimeoutException
      * @throws IOException
@@ -729,7 +744,7 @@ public class Toolbox {
         if (mounts != null) {
             for (Mount mount : mounts) {
                 if (path.contains(mount.getMountPoint().getAbsolutePath())) {
-                    Log.d(Constants.TAG, (String) mount.getFlags().toArray()[0]);
+                    Log.d(RootCommands.TAG, (String) mount.getFlags().toArray()[0]);
                     return (String) mount.getFlags().toArray()[0];
                 }
             }
@@ -762,19 +777,20 @@ public class Toolbox {
             long availableBlocks = stat.getAvailableBlocks();
             long availableSpace = availableBlocks * blockSize;
 
-            Log.i(Constants.TAG, "Checking for enough space: Target: " + target + ", directory: "
-                    + directory + " size: " + size + ", availableSpace: " + availableSpace);
+            Log.i(RootCommands.TAG, "Checking for enough space: Target: " + target
+                    + ", directory: " + directory + " size: " + size + ", availableSpace: "
+                    + availableSpace);
 
             if (size < availableSpace) {
                 return true;
             } else {
-                Log.e(Constants.TAG, "Not enough space on partition!");
+                Log.e(RootCommands.TAG, "Not enough space on partition!");
                 return false;
             }
         } catch (Exception e) {
             // if new StatFs(directory) fails catch IllegalArgumentException and just return true as
             // workaround
-            Log.e(Constants.TAG, "Problem while getting available space on partition!", e);
+            Log.e(RootCommands.TAG, "Problem while getting available space on partition!", e);
             return true;
         }
     }

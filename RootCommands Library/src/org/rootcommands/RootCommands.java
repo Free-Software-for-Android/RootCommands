@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.rootcommands.util;
+package org.rootcommands;
 
-public class Constants {
-    public static final boolean DEBUG = true;
-    public static final String TAG = "RootCommands";
-
+public class RootCommands {
+    public static boolean DEBUG = false;
     public static int defaultTimeout = 10000;
 
+    public static String TAG = "RootCommands";
 }

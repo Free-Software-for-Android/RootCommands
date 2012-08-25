@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.rootcommands.command.Command;
-import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
 import org.rootcommands.util.RootAccessDeniedException;
 import org.rootcommands.util.Utils;
@@ -50,7 +49,7 @@ public class Shell {
      */
     public static Shell startRootShell(ArrayList<String> customEnv, String baseDirectory)
             throws IOException, RootAccessDeniedException {
-        Log.d(Constants.TAG, "Starting Root Shell!");
+        Log.d(RootCommands.TAG, "Starting Root Shell!");
 
         // On some versions of Android (ICS) LD_LIBRARY_PATH is unset when using su
         // We need to pass LD_LIBRARY_PATH over su for some commands to work correctly.
@@ -84,7 +83,7 @@ public class Shell {
      */
     public static Shell startShell(ArrayList<String> customEnv, String baseDirectory)
             throws IOException {
-        Log.d(Constants.TAG, "Starting Shell!");
+        Log.d(RootCommands.TAG, "Starting Shell!");
         Shell shell = new Shell("sh", customEnv, baseDirectory);
         return shell;
     }
@@ -110,7 +109,7 @@ public class Shell {
      */
     public static Shell startCustomShell(String shellPath, ArrayList<String> customEnv,
             String baseDirectory) throws IOException {
-        Log.d(Constants.TAG, "Starting Custom Shell!");
+        Log.d(RootCommands.TAG, "Starting Custom Shell!");
         Shell shell = new Shell(shellPath, customEnv, baseDirectory);
 
         return shell;
@@ -129,7 +128,7 @@ public class Shell {
 
     private Shell(String shell, ArrayList<String> customEnv, String baseDirectory)
             throws IOException, RootAccessDeniedException {
-        Log.d(Constants.TAG, "Starting shell: " + shell);
+        Log.d(RootCommands.TAG, "Starting shell: " + shell);
 
         // start shell process!
         shellProcess = Utils.runWithEnv(shell, customEnv, baseDirectory);
@@ -164,7 +163,7 @@ public class Shell {
             try {
                 writeCommands();
             } catch (IOException e) {
-                Log.e(Constants.TAG, "IO Exception", e);
+                Log.e(RootCommands.TAG, "IO Exception", e);
             }
         }
     };
@@ -174,9 +173,9 @@ public class Shell {
             try {
                 readOutput();
             } catch (IOException e) {
-                Log.e(Constants.TAG, "IOException", e);
+                Log.e(RootCommands.TAG, "IOException", e);
             } catch (InterruptedException e) {
-                Log.e(Constants.TAG, "InterruptedException", e);
+                Log.e(RootCommands.TAG, "InterruptedException", e);
             }
         }
     };
@@ -198,7 +197,7 @@ public class Shell {
             shellProcess.destroy();
         }
 
-        Log.d(Constants.TAG, "Shell destroyed");
+        Log.d(RootCommands.TAG, "Shell destroyed");
     }
 
     /**
@@ -229,12 +228,12 @@ public class Shell {
                     out.write("\nexit 0\n".getBytes());
                     out.flush();
                     out.close();
-                    Log.d(Constants.TAG, "Closing shell");
+                    Log.d(RootCommands.TAG, "Closing shell");
                     return;
                 }
             }
         } catch (InterruptedException e) {
-            Log.e(Constants.TAG, "interrupted while writing command", e);
+            Log.e(RootCommands.TAG, "interrupted while writing command", e);
         }
     }
 
@@ -288,7 +287,7 @@ public class Shell {
             }
             command.processOutput(lineStdOut);
         }
-        Log.d(Constants.TAG, "Read all output");
+        Log.d(RootCommands.TAG, "Read all output");
         shellProcess.waitFor();
         destroyShellProcess();
 

@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeoutException;
 
+import org.rootcommands.RootCommands;
 import org.rootcommands.Shell;
 import org.rootcommands.util.BrokenBusyboxException;
-import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
 
 public abstract class Command {
@@ -32,7 +32,7 @@ public abstract class Command {
     boolean brokenBusyboxDetected = false;
     int exitCode;
     int id;
-    int timeout = Constants.defaultTimeout;
+    int timeout = RootCommands.defaultTimeout;
     Shell shell = null;
 
     public Command(String... command) {
@@ -67,7 +67,7 @@ public abstract class Command {
             sb.append(command[i] + " 2>&1");
             sb.append('\n');
         }
-        Log.d(Constants.TAG, "Sending command(s): " + sb.toString());
+        Log.d(RootCommands.TAG, "Sending command(s): " + sb.toString());
         return sb.toString();
     }
 
@@ -76,7 +76,7 @@ public abstract class Command {
     }
 
     public void processOutput(String line) {
-        Log.d(Constants.TAG, "ID: " + id + ", Output: " + line);
+        Log.d(RootCommands.TAG, "ID: " + id + ", Output: " + line);
 
         /*
          * Try to detect broken toolbox/busybox binaries (see
@@ -86,7 +86,7 @@ public abstract class Command {
          * and chown) in certain directories (e.g. /data/data)
          */
         if (line.contains("Value too large for defined data type")) {
-            Log.e(Constants.TAG, "Busybox is broken with high probability due to line: " + line);
+            Log.e(RootCommands.TAG, "Busybox is broken with high probability due to line: " + line);
             brokenBusyboxDetected = true;
         }
 
@@ -97,7 +97,7 @@ public abstract class Command {
     public abstract void output(int id, String line);
 
     public void processAfterExecution(int exitCode) {
-        Log.d(Constants.TAG, "ID: " + id + ", ExitCode: " + exitCode);
+        Log.d(RootCommands.TAG, "ID: " + id + ", ExitCode: " + exitCode);
 
         afterExecution(id, exitCode);
     }
@@ -105,7 +105,7 @@ public abstract class Command {
     public abstract void afterExecution(int id, int exitCode);
 
     public void commandFinished(int id) {
-        Log.d(Constants.TAG, "Command " + id + " finished.");
+        Log.d(RootCommands.TAG, "Command " + id + " finished.");
     }
 
     public void setExitCode(int code) {
@@ -125,7 +125,7 @@ public abstract class Command {
     public void terminate(String reason) {
         try {
             shell.close();
-            Log.d(Constants.TAG, "Terminating the shell.");
+            Log.d(RootCommands.TAG, "Terminating the shell.");
             terminated(reason);
         } catch (IOException e) {
         }
@@ -133,7 +133,7 @@ public abstract class Command {
 
     public void terminated(String reason) {
         setExitCode(-1);
-        Log.d(Constants.TAG, "Command " + id + " did not finish, because of " + reason);
+        Log.d(RootCommands.TAG, "Command " + id + " did not finish, because of " + reason);
     }
 
     /**
@@ -149,7 +149,7 @@ public abstract class Command {
                 try {
                     this.wait(timeout);
                 } catch (InterruptedException e) {
-                    Log.e(Constants.TAG, "InterruptedException in waitForFinish()", e);
+                    Log.e(RootCommands.TAG, "InterruptedException in waitForFinish()", e);
                 }
 
                 if (!finished) {

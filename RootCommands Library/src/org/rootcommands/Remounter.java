@@ -24,7 +24,6 @@ import java.io.LineNumberReader;
 import java.util.ArrayList;
 
 import org.rootcommands.command.SimpleCommand;
-import org.rootcommands.util.Constants;
 import org.rootcommands.util.Log;
 
 //no modifier, this means it is package-private. Only our internal classes can use this.
@@ -64,7 +63,7 @@ class Remounter {
         while (!foundMount) {
             try {
                 for (Mount mount : getMounts()) {
-                    Log.d(Constants.TAG, mount.getMountPoint().toString());
+                    Log.d(RootCommands.TAG, mount.getMountPoint().toString());
 
                     if (file.equals(mount.getMountPoint().toString())) {
                         foundMount = true;
@@ -72,21 +71,21 @@ class Remounter {
                     }
                 }
             } catch (Exception e) {
-                Log.e(Constants.TAG, "Exception", e);
+                Log.e(RootCommands.TAG, "Exception", e);
                 return false;
             }
             if (!foundMount) {
                 try {
                     file = (new File(file).getParent()).toString();
                 } catch (Exception e) {
-                    Log.e(Constants.TAG, "Exception", e);
+                    Log.e(RootCommands.TAG, "Exception", e);
                     return false;
                 }
             }
         }
         Mount mountPoint = findMountPointRecursive(file);
 
-        Log.d(Constants.TAG, "Remounting " + mountPoint.getMountPoint().getAbsolutePath() + " as "
+        Log.d(RootCommands.TAG, "Remounting " + mountPoint.getMountPoint().getAbsolutePath() + " as "
                 + mountType.toLowerCase());
         final boolean isMountMode = mountPoint.getFlags().contains(mountType.toLowerCase());
 
@@ -115,12 +114,12 @@ class Remounter {
             mountPoint = findMountPointRecursive(file);
         }
 
-        Log.d(Constants.TAG, mountPoint.getFlags() + " AND " + mountType.toLowerCase());
+        Log.d(RootCommands.TAG, mountPoint.getFlags() + " AND " + mountType.toLowerCase());
         if (mountPoint.getFlags().contains(mountType.toLowerCase())) {
-            Log.d(Constants.TAG, mountPoint.getFlags().toString());
+            Log.d(RootCommands.TAG, mountPoint.getFlags().toString());
             return true;
         } else {
-            Log.d(Constants.TAG, mountPoint.getFlags().toString());
+            Log.d(RootCommands.TAG, mountPoint.getFlags().toString());
             return false;
         }
     }
@@ -139,7 +138,7 @@ class Remounter {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (Exception e) {
-            Log.e(Constants.TAG, "Exception", e);
+            Log.e(RootCommands.TAG, "Exception", e);
         }
         return null;
     }
@@ -161,7 +160,7 @@ class Remounter {
         ArrayList<Mount> mounts = new ArrayList<Mount>();
         while ((line = lnr.readLine()) != null) {
 
-            Log.d(Constants.TAG, line);
+            Log.d(RootCommands.TAG, line);
 
             String[] fields = line.split(" ");
             mounts.add(new Mount(new File(fields[0]), // device
