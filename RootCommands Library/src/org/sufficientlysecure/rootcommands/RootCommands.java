@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.rootcommands;
+package org.sufficientlysecure.rootcommands;
 
-import org.rootcommands.util.Log;
+import org.sufficientlysecure.rootcommands.util.Log;
 
 public class RootCommands {
     public static boolean DEBUG = false;

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.rootcommands.util;
+package org.sufficientlysecure.rootcommands.util;
 
 import java.io.IOException;
 
-public class BrokenBusyboxException extends IOException {
-    private static final long serialVersionUID = 8337358201589488409L;
+public class RootAccessDeniedException extends IOException {
+    private static final long serialVersionUID = 9088998884166225540L;
 
-    public BrokenBusyboxException() {
+    public RootAccessDeniedException() {
         super();
     }
 
-    public BrokenBusyboxException(String detailMessage) {
+    public RootAccessDeniedException(String detailMessage) {
         super(detailMessage);
     }
 

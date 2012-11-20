@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.rootcommands;
+package org.sufficientlysecure.rootcommands;
 
 import java.io.File;
 import java.io.FileReader;
@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
 
-import org.rootcommands.command.SimpleCommand;
-import org.rootcommands.util.Log;
+import org.sufficientlysecure.rootcommands.command.SimpleCommand;
+import org.sufficientlysecure.rootcommands.util.Log;
 
 //no modifier, this means it is package-private. Only our internal classes can use this.
 class Remounter {

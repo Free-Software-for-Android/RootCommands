@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.rootcommands.command;
+package org.sufficientlysecure.rootcommands.command;
 
 import android.content.Context;
 

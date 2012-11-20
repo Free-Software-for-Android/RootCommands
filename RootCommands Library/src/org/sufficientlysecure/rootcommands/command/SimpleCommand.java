@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.rootcommands.command;
+package org.sufficientlysecure.rootcommands.command;
 
 public class SimpleCommand extends Command {
     private StringBuilder sb = new StringBuilder();

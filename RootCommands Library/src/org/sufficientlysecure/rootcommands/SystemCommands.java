@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.rootcommands;
+package org.sufficientlysecure.rootcommands;
 
 import android.annotation.TargetApi;
 import android.content.ContentResolver;

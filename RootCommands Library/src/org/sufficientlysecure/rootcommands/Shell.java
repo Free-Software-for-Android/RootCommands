@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.rootcommands;
+package org.sufficientlysecure.rootcommands;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
@@ -25,10 +25,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.rootcommands.command.Command;
-import org.rootcommands.util.Log;
-import org.rootcommands.util.RootAccessDeniedException;
-import org.rootcommands.util.Utils;
+import org.sufficientlysecure.rootcommands.command.Command;
+import org.sufficientlysecure.rootcommands.util.Log;
+import org.sufficientlysecure.rootcommands.util.RootAccessDeniedException;
+import org.sufficientlysecure.rootcommands.util.Utils;
 
 public class Shell implements Closeable {
     private final Process shellProcess;

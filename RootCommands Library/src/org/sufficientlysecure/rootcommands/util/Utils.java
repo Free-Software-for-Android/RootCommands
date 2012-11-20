@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package org.rootcommands.util;
+package org.sufficientlysecure.rootcommands.util;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.rootcommands.RootCommands;
+import org.sufficientlysecure.rootcommands.RootCommands;
 
 public class Utils {
     /*

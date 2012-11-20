@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.rootcommands.util;
+package org.sufficientlysecure.rootcommands.util;
 
-public class UnsupportedArchitectureException extends Exception {
-    private static final long serialVersionUID = 7826528799780001655L;
+import java.io.IOException;
 
-    public UnsupportedArchitectureException() {
+public class BrokenBusyboxException extends IOException {
+    private static final long serialVersionUID = 8337358201589488409L;
+
+    public BrokenBusyboxException() {
         super();
     }
 
-    public UnsupportedArchitectureException(String detailMessage) {
+    public BrokenBusyboxException(String detailMessage) {
         super(detailMessage);
     }
 

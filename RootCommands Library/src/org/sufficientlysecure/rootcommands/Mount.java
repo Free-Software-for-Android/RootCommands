@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.rootcommands;
+package org.sufficientlysecure.rootcommands;
 
 import java.io.File;
 import java.util.Arrays;
