@@ -69,7 +69,7 @@ public class Toolbox {
      * @throws BrokenBusyboxException
      */
     public boolean isRootAccessGiven() throws BrokenBusyboxException, TimeoutException, IOException {
-        SimpleCommand idCommand = new SimpleCommand("id");
+        SimpleCommand idCommand = new SimpleCommand("toolbox id");
         shell.add(idCommand).waitForFinish();
 
         if (idCommand.getOutput().contains("uid=0")) {
@@ -89,7 +89,7 @@ public class Toolbox {
         private Pattern psPattern;
 
         public PsCommand(String processName) {
-            super("ps");
+            super("toolbox ps");
             this.processName = processName;
             pids = new ArrayList<String>();
 
@@ -169,7 +169,8 @@ public class Toolbox {
         // kill processes
         if (!psCommand.getPids().isEmpty()) {
             // example: kill -9 1234 1222 5343
-            SimpleCommand killCommand = new SimpleCommand("kill -9 " + psCommand.getPidsString());
+            SimpleCommand killCommand = new SimpleCommand("toolbox kill -9 "
+                    + psCommand.getPidsString());
             shell.add(killCommand).waitForFinish();
 
             if (killCommand.getExitCode() == 0) {
@@ -242,9 +243,9 @@ public class Toolbox {
      * Ls command to get permissions or symlinks
      */
     private class LsCommand extends Command {
-        private String file;
-        private String lsRegex;
-        private Pattern lsPattern;
+        private String fileName;
+        private String permissionRegex;
+        private Pattern permissionPattern;
         private String symlinkRegex;
         private Pattern symlinkPattern;
 
@@ -260,30 +261,38 @@ public class Toolbox {
         }
 
         public LsCommand(String file) {
-            super("ls -l " + file, "busybox ls -l " + file, "/system/bin/failsafe/toolbox ls -l "
-                    + file, "toolbox ls -l " + file);
-            this.file = file;
+            super("toolbox ls -l " + file);
+
+            // get only filename:
+            this.fileName = (new File(file)).getName();
+            Log.d(RootCommands.TAG, "fileName: " + fileName);
 
             /**
              * regex to get pid out of ps line, example:
              * 
              * <pre>
-             *  lrwxrwxrwx     1 root root            15 Aug 13 12:14 dev/stdin -> /proc/self/fd/0
-             * ^(\\S{10}) \\s+     .*                                 file      (.*)              $
+             * with busybox:
+             *     lrwxrwxrwx     1 root root            15 Aug 13 12:14 dev/stdin -> /proc/self/fd/0
+             *     
+             * with toolbox:
+             *     lrwxrwxrwx root root            15 Aug 13 12:14 stdin -> /proc/self/fd/0
+             * 
+             * Regex:
+             * ^.*?(\\S{10})                     .*                                                  $
              * </pre>
              */
-            lsRegex = "^(\\S{10})\\s+.*" + Pattern.quote(file) + "(.*)$";
-            lsPattern = Pattern.compile(lsRegex);
+            permissionRegex = "^.*?(\\S{10}).*$";
+            permissionPattern = Pattern.compile(permissionRegex);
 
             /**
              * regex to get symlink
              * 
              * <pre>
-             *  ->           /proc/self/fd/0
-             * ^\\-\\> \\s+  (.*)           $
+             *     ->           /proc/self/fd/0
+             * ^.*?\\-\\> \\s+  (.*)           $
              * </pre>
              */
-            symlinkRegex = "^\\-\\>\\s+(.*)$";
+            symlinkRegex = "^.*?\\-\\>\\s+(.*)$";
             symlinkPattern = Pattern.compile(symlinkRegex);
         }
 
@@ -327,35 +336,30 @@ public class Toolbox {
         @Override
         public void output(int id, String line) {
             // general check if line contains file
-            if (line.contains(file)) {
-                Matcher lsMatcher = lsPattern.matcher(line);
+            if (line.contains(fileName)) {
 
                 // try to match line exactly
                 try {
-                    if (lsMatcher.find()) {
-                        permissions = convertPermissions(lsMatcher.group(1));
+                    Matcher permissionMatcher = permissionPattern.matcher(line);
+                    if (permissionMatcher.find()) {
+                        permissions = convertPermissions(permissionMatcher.group(1));
 
                         Log.d(RootCommands.TAG, "Found permissions: " + permissions);
-
-                        // if there is more it could be a symlink
-                        String symlinkGroup = lsMatcher.group(2);
-                        if (symlinkGroup != null) {
-                            // try to parse for symlink
-                            Matcher symlinkMatcher = symlinkPattern.matcher(symlinkGroup);
-
-                            /*
-                             * TODO: If symlink points to a file in the same directory the path is
-                             * not absolute!!!
-                             */
-                            if (symlinkMatcher.find()) {
-                                symlink = symlinkMatcher.group(1);
-                                Log.d(RootCommands.TAG, "Symlink found: " + symlink);
-                            } else {
-                                Log.d(RootCommands.TAG, "No symlink found!");
-                            }
-                        }
                     } else {
-                        Log.d(RootCommands.TAG, "Matching in ls command failed!");
+                        Log.d(RootCommands.TAG, "Permissions were not found in ls command!");
+                    }
+
+                    // try to parse for symlink
+                    Matcher symlinkMatcher = symlinkPattern.matcher(line);
+                    if (symlinkMatcher.find()) {
+                        /*
+                         * TODO: If symlink points to a file in the same directory the path is not
+                         * absolute!!!
+                         */
+                        symlink = symlinkMatcher.group(1);
+                        Log.d(RootCommands.TAG, "Symlink found: " + symlink);
+                    } else {
+                        Log.d(RootCommands.TAG, "No symlink found!");
                     }
                 } catch (Exception e) {
                     Log.e(RootCommands.TAG, "Error with regex!", e);
@@ -413,7 +417,7 @@ public class Toolbox {
             throws BrokenBusyboxException, TimeoutException, IOException {
         Log.d(RootCommands.TAG, "Set permissions of " + file + " to " + permissions);
 
-        SimpleCommand chmodCommand = new SimpleCommand("chmod " + permissions + " " + file);
+        SimpleCommand chmodCommand = new SimpleCommand("toolbox chmod " + permissions + " " + file);
         shell.add(chmodCommand).waitForFinish();
 
         if (chmodCommand.getExitCode() == 0) {
@@ -441,14 +445,10 @@ public class Toolbox {
 
         String symlink = null;
 
-        if (fileExists(file)) {
-            Log.d(RootCommands.TAG, file + " was found.");
+        LsCommand lsCommand = new LsCommand(file);
+        shell.add(lsCommand).waitForFinish();
 
-            LsCommand lsCommand = new LsCommand(file);
-            shell.add(lsCommand).waitForFinish();
-
-            symlink = lsCommand.getSymlink();
-        }
+        symlink = lsCommand.getSymlink();
 
         return symlink;
     }
@@ -500,14 +500,16 @@ public class Toolbox {
 
         boolean commandSuccess = false;
 
-        SimpleCommand ddCommand = new SimpleCommand("dd if=" + source + " of=" + destination);
+        SimpleCommand ddCommand = new SimpleCommand("toolbox dd if=" + source + " of="
+                + destination);
         shell.add(ddCommand).waitForFinish();
 
         if (ddCommand.getExitCode() == 0) {
             commandSuccess = true;
         } else {
             // try cat if dd fails
-            SimpleCommand catCommand = new SimpleCommand("cat " + source + " > " + destination);
+            SimpleCommand catCommand = new SimpleCommand("toolbox cat " + source + " > "
+                    + destination);
             shell.add(catCommand).waitForFinish();
 
             if (catCommand.getExitCode() == 0) {
@@ -583,7 +585,7 @@ public class Toolbox {
         private boolean fileExists = false;
 
         public FileExistsCommand(String file) {
-            super("ls " + file);
+            super("toolbox ls " + file);
             this.file = file;
         }
 
