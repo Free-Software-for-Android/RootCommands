@@ -295,9 +295,9 @@ public class Toolbox {
          * @return
          */
         private String convertPermissions(String permissions) {
-            int owner = getGroupPermission(permissions.substring(1, 3));
-            int group = getGroupPermission(permissions.substring(4, 6));
-            int world = getGroupPermission(permissions.substring(7, 9));
+            int owner = getGroupPermission(permissions.substring(1, 4));
+            int group = getGroupPermission(permissions.substring(4, 7));
+            int world = getGroupPermission(permissions.substring(7, 10));
 
             return "" + owner + group + world;
         }
@@ -487,7 +487,8 @@ public class Toolbox {
         // remount destination as read/write before copying to it
         if (remountAsRw) {
             if (!remount(destination, "RW")) {
-                throw new FileNotFoundException("Remounting failed!");
+                Log.d(RootCommands.TAG,
+                        "Remounting failed! There is probably no need to remount this partition!");
             }
         }
 
@@ -522,7 +523,8 @@ public class Toolbox {
         // remount destination back to read only
         if (remountAsRw) {
             if (!remount(destination, "RO")) {
-                throw new FileNotFoundException("Remounting failed!");
+                Log.d(RootCommands.TAG,
+                        "Remounting failed! There is probably no need to remount this partition!");
             }
         }
 

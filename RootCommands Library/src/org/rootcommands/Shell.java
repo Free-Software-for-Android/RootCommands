@@ -18,6 +18,7 @@
 package org.rootcommands;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,7 +30,7 @@ import org.rootcommands.util.Log;
 import org.rootcommands.util.RootAccessDeniedException;
 import org.rootcommands.util.Utils;
 
-public class Shell {
+public class Shell implements Closeable {
     private final Process shellProcess;
     private final BufferedReader stdOutErr;
     private final DataOutputStream outputStream;
@@ -341,4 +342,5 @@ public class Shell {
     public int getCommandsSize() {
         return commands.size();
     }
+
 }
