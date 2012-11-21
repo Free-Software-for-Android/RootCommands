@@ -23,12 +23,12 @@ import android.location.LocationManager;
 import android.os.PowerManager;
 import android.provider.Settings;
 
+/**
+ * This methods work when the apk is installed as a system app (under /system/app)
+ */
 public class SystemCommands {
     Context context;
 
-    /**
-     * This methods work when the apk is installed as a system app (under /system/app)
-     */
     public SystemCommands(Context context) {
         super();
         this.context = context;
