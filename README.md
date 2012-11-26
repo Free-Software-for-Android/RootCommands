@@ -147,9 +147,9 @@ We are missusing Androids library method to deploy our native binaries, by renam
 
 Note: Permission and owner of deployed files: ``-rwxr-xr-x system   system      38092 2012-09-24 19:51 libhello_world_bin.so``
 
-1. Put the sources of the native binaries into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/RootCommands%20Demo/jni
+1. Put the sources of the native binaries into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/RootCommands-Demo/jni
 2. Write your own Android.mk and Application.mk
-3. To automate the renaming process use a custom ruleset for Ant: https://github.com/dschuermann/root-commands/blob/master/RootCommands%20Demo/custom_rules.xml . This will rename the files from ``*`` to ``lib*_bin.so``.
+3. To automate the renaming process use a custom ruleset for Ant: https://github.com/dschuermann/root-commands/blob/master/RootCommands-Demo/custom_rules.xml . This will rename the files from ``*`` to ``lib*_bin.so``.
 4. Build ``local.properties`` with sdk.dir and ndk.dir
 5. Execute ``ant release`` to compile Java code, compile the native executables, rename them, and generate an apk.
 
