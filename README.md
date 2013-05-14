@@ -1,6 +1,6 @@
 # RootCommands
 
-This is a library to simplify the execution of root commands. It is a Java wrapper around native executables and can be used to execute specific root commands.
+This is a library to simplify the execution of root commands on the Android OS. It is a Java wrapper around executeables shipped with every Android OS, but can also be used to execute your own native executeables.
 
 # Add the lib to your project
 
