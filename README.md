@@ -4,7 +4,8 @@ This is a library to simplify the usage of root commands on the Android OS. It i
 
 # Add the lib to your project
 
-Put the newest jar from the Downloads section (https://github.com/dschuermann/root-commands/downloads) into the ``libs`` folder of your Android project.
+Clone this master and add RootCommands-Library as a Android dependency to your project.  
+Alternative: Compile library using and and put resulting jar file in your libs folder.
 
 ## Alternative way
 
@@ -181,6 +182,10 @@ Fork RootCommands and do a Pull Request. I will merge your changes back into the
 
 # Documentation
 * http://su.chainfire.eu/
+
+# Other Root libraries
+* https://github.com/Chainfire/libsuperuser
+* http://code.google.com/p/roottools/
 
 # Authors
 RootCommands is based on several other open source projects, thus several authors are involved:
