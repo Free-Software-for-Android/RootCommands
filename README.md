@@ -150,8 +150,9 @@ Note: Permission and owner of deployed files: ``-rwxr-xr-x system   system      
 1. Put the sources of the native binaries into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/RootCommands-Demo/jni
 2. Write your own Android.mk and Application.mk
 3. To automate the renaming process use a custom ruleset for Ant: https://github.com/dschuermann/root-commands/blob/master/RootCommands-Demo/custom_rules.xml . This will rename the files from ``*`` to ``lib*_bin.so``.
-4. Build ``local.properties`` with sdk.dir and ndk.dir
-5. Execute ``ant release`` to compile Java code, compile the native executables, rename them, and generate an apk.
+4. Execute ``ndk-build`` to build binaries
+5. Execute ``android update project -p .``
+6. Execute ``ant release`` to compile Java code, rename native binaries, and generate an apk.
 
 Now that your binaries are bundled, you can use our ``SimpleBinaryCommand`` like in the following example:
 
@@ -185,6 +186,9 @@ Fork RootCommands and do a Pull Request. I will merge your changes back into the
 1. ``ant release``
 2. ``cd bin``
 3. ``dx --dex --output=classes-dex.jar classes.jar``
+
+# Documentation
+* http://su.chainfire.eu/
 
 # Authors
 RootCommands is based on several other open source projects, thus several authors are involved:

@@ -16,7 +16,6 @@
 
 package org.sufficientlysecure.rootcommands.demo;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +24,6 @@ import java.lang.reflect.Method;
 
 import org.sufficientlysecure.rootcommands.IRootCommandsService;
 import org.sufficientlysecure.rootcommands.RootCommands;
-//import org.sufficientlysecure.rootcommands.RootCommandsService;
 import org.sufficientlysecure.rootcommands.Shell;
 import org.sufficientlysecure.rootcommands.Toolbox;
 import org.sufficientlysecure.rootcommands.command.Command;
