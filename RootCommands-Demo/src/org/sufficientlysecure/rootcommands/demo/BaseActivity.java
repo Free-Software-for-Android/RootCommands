@@ -16,13 +16,6 @@
 
 package org.sufficientlysecure.rootcommands.demo;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Method;
-
-import org.sufficientlysecure.rootcommands.IRootCommandsService;
 import org.sufficientlysecure.rootcommands.RootCommands;
 import org.sufficientlysecure.rootcommands.Shell;
 import org.sufficientlysecure.rootcommands.Toolbox;
@@ -32,10 +25,7 @@ import org.sufficientlysecure.rootcommands.command.SimpleCommand;
 import org.sufficientlysecure.rootcommands.demo.R;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.res.AssetManager;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 
@@ -151,76 +141,4 @@ public class BaseActivity extends Activity {
         }
     }
 
-    public void serviceTestOnClick(View view) {
-        try {
-
-            AssetManager assetManager = getAssets();
-
-            InputStream stream = assetManager.open("classes-dex.jar");
-
-            FileOutputStream writer = openFileOutput("service.jar", Context.MODE_PRIVATE);
-
-            // copy the binary to the local file
-            copy(stream, writer, 4096);
-
-            // close the filehandle
-            writer.close();
-
-            Shell shell = Shell.startRootShell();
-
-            Toolbox tb = new Toolbox(shell);
-
-            if (tb.isRootAccessGiven()) {
-                Log.d(TAG, "Root access given!");
-            } else {
-                Log.d(TAG, "No root access!");
-            }
-
-            String basePath = getFilesDir().getAbsolutePath();
-
-            shell.add(
-                    new SimpleCommand("export CLASSPATH=" + basePath + "/service.jar",
-                            "exec app_process /system/bin org.sufficientlysecure.rootcommands.RootCommandsRun &"))
-                    .waitForFinish();
-
-            shell.close();
-        } catch (Exception e) {
-            Log.e(TAG, "Exception!", e);
-        }
-    }
-
-    public void service2TestOnClick(View view) {
-
-        IBinder b = null;
-        try {
-            // ServiceManager.getService("RootCommandsService")
-            Class<?> serviceManagerCls = Class.forName("android.os.ServiceManager");
-            Method methodGetService = serviceManagerCls.getMethod("getService", String.class);
-
-            Log.d(RootCommands.TAG, "getService");
-            b = (IBinder) methodGetService.invoke(null, new String("RootCommandsService"));
-        } catch (Exception e) {
-            Log.e(RootCommands.TAG, "Exception", e);
-        }
-
-        IRootCommandsService om = IRootCommandsService.Stub.asInterface(b);
-        try {
-            Log.d(RootCommands.TAG, "Going to call service");
-            om.setValue(20);
-            Log.d(RootCommands.TAG, "Service called succesfully");
-        } catch (Exception e) {
-            Log.d(RootCommands.TAG, "FAILED to call service");
-            e.printStackTrace();
-        }
-    }
-
-    private static void copy(InputStream in, OutputStream out, int bufferSize) throws IOException {
-        // Read bytes and write to destination until eof
-
-        byte[] buf = new byte[bufferSize];
-        int len = 0;
-        while ((len = in.read(buf)) >= 0) {
-            out.write(buf, 0, len);
-        }
-    }
 }

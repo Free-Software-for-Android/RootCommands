@@ -31,19 +31,4 @@
         android:onClick="binariesTestOnClick"
         android:text="Binaries Test" />
 
-    <Button
-        android:id="@+id/btest_button4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="serviceTestOnClick"
-        android:text="Service Test" />
-    
-    
-    <Button
-        android:id="@+id/btest_button5"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="service2TestOnClick"
-        android:text="Service 2 Test" />
-
 </LinearLayout>
