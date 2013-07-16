@@ -180,7 +180,7 @@ shell.close();
 
 Fork RootCommands and do a Pull Request. I will merge your changes back into the main project.
 
-# Documentation
+# Other Documentation
 * http://su.chainfire.eu/
 
 # Other Root libraries
