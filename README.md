@@ -5,9 +5,9 @@ This is a library to simplify the usage of root commands on the Android OS. It i
 # Add the lib to your project
 
 Clone this master and add RootCommands-Library as a Android dependency to your project.  
-Alternative: Compile library using and and put resulting jar file in your libs folder.
+Alternative: Compile library using Ant and put resulting jar file in your libs folder.
 
-## Alternative way
+## Include Library Project in Eclipse
 
 * New -> Android Project -> Create project from existing source, choose ``RootCommands Library``
 * Add ``RootCommands Library`` as Android Library (Properties of your project -> Android -> Library -> add ``RootCommands Library`` as android library)
@@ -180,7 +180,7 @@ shell.close();
 
 Fork RootCommands and do a Pull Request. I will merge your changes back into the main project.
 
-# Documentation
+# Other Documentation
 * http://su.chainfire.eu/
 
 # Other Root libraries
