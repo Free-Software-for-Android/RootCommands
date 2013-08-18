@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import org.sufficientlysecure.rootcommands.command.SimpleCommand;
 import org.sufficientlysecure.rootcommands.util.Log;
@@ -85,23 +86,23 @@ class Remounter {
         }
         Mount mountPoint = findMountPointRecursive(file);
 
-        Log.d(RootCommands.TAG, "Remounting " + mountPoint.getMountPoint().getAbsolutePath() + " as "
-                + mountType.toLowerCase());
-        final boolean isMountMode = mountPoint.getFlags().contains(mountType.toLowerCase());
+        Log.d(RootCommands.TAG, "Remounting " + mountPoint.getMountPoint().getAbsolutePath()
+                + " as " + mountType.toLowerCase(Locale.US));
+        final boolean isMountMode = mountPoint.getFlags().contains(mountType.toLowerCase(Locale.US));
 
         if (!isMountMode) {
             // grab an instance of the internal class
             try {
                 SimpleCommand command = new SimpleCommand("busybox mount -o remount,"
-                        + mountType.toLowerCase() + " " + mountPoint.getDevice().getAbsolutePath()
+                        + mountType.toLowerCase(Locale.US) + " " + mountPoint.getDevice().getAbsolutePath()
                         + " " + mountPoint.getMountPoint().getAbsolutePath(),
-                        "toolbox mount -o remount," + mountType.toLowerCase() + " "
+                        "toolbox mount -o remount," + mountType.toLowerCase(Locale.US) + " "
                                 + mountPoint.getDevice().getAbsolutePath() + " "
                                 + mountPoint.getMountPoint().getAbsolutePath(), "mount -o remount,"
-                                + mountType.toLowerCase() + " "
+                                + mountType.toLowerCase(Locale.US) + " "
                                 + mountPoint.getDevice().getAbsolutePath() + " "
                                 + mountPoint.getMountPoint().getAbsolutePath(),
-                        "/system/bin/toolbox mount -o remount," + mountType.toLowerCase() + " "
+                        "/system/bin/toolbox mount -o remount," + mountType.toLowerCase(Locale.US) + " "
                                 + mountPoint.getDevice().getAbsolutePath() + " "
                                 + mountPoint.getMountPoint().getAbsolutePath());
 
@@ -114,8 +115,8 @@ class Remounter {
             mountPoint = findMountPointRecursive(file);
         }
 
-        Log.d(RootCommands.TAG, mountPoint.getFlags() + " AND " + mountType.toLowerCase());
-        if (mountPoint.getFlags().contains(mountType.toLowerCase())) {
+        Log.d(RootCommands.TAG, mountPoint.getFlags() + " AND " + mountType.toLowerCase(Locale.US));
+        if (mountPoint.getFlags().contains(mountType.toLowerCase(Locale.US))) {
             Log.d(RootCommands.TAG, mountPoint.getFlags().toString());
             return true;
         } else {
@@ -154,8 +155,18 @@ class Remounter {
      *             if we cannot return the mount points.
      */
     protected static ArrayList<Mount> getMounts() throws Exception {
+
+        final String tempFile = "/data/local/RootToolsMounts";
+
+        // copy /proc/mounts to tempfile. Directly reading it does not work on 4.3
+        Shell shell = Shell.startRootShell();
+        Toolbox tb = new Toolbox(shell);
+        tb.copyFile("/proc/mounts", tempFile, false, false);
+        tb.setFilePermissions(tempFile, "777");
+        shell.close();
+
         LineNumberReader lnr = null;
-        lnr = new LineNumberReader(new FileReader("/proc/mounts"));
+        lnr = new LineNumberReader(new FileReader(tempFile));
         String line;
         ArrayList<Mount> mounts = new ArrayList<Mount>();
         while ((line = lnr.readLine()) != null) {
