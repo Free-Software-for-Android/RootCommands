@@ -2,13 +2,10 @@
 
 This is a library to simplify the usage of root commands on the Android OS. It is a Java wrapper around native binaries shipped with every Android OS, but can also be used to package and execute your own native binaries.
 
-## Use library as jar file
-
-TODO
-
 ## Use library as Gradle dependency (Android library project)
 
-TODO
+1. Copy ``libraries/RootCommands`` to your project and include it in ``settings.gradle`` (see https://github.com/dschuermann/root-commands/blob/master/settings.gradle)
+2. Add dependency ``compile project(':libraries:RootCommands')`` to your project ``build.gradle``. (see https://github.com/dschuermann/root-commands/blob/master/ExampleApp/build.gradle)
 
 # Examples
 
@@ -146,12 +143,12 @@ We are missusing Androids library method to deploy our native binaries, by renam
 
 Note: Permission and owner of deployed files: ``-rwxr-xr-x system   system      38092 2012-09-24 19:51 libhello_world_bin.so``
 
-1. Put the sources of the native binaries into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/RootCommands-Demo/jni
+1. Put the sources of the native binaries into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/ExampleApp/jni
 2. Write your own Android.mk and Application.mk
-3. To automate the renaming process use a custom ruleset for Ant: https://github.com/dschuermann/root-commands/blob/master/RootCommands-Demo/custom_rules.xml . This will rename the files from ``*`` to ``lib*_bin.so``.
+3. To automate the renaming process I propose a Gradle task: https://github.com/dschuermann/root-commands/blob/master/ExampleApp/build.gradle . This will rename the files from ``*`` to ``lib*_bin.so``.
 4. Execute ``ndk-build`` to build binaries
-5. Execute ``android update project -p .``
-6. Execute ``ant release`` to compile Java code, rename native binaries, and generate an apk.
+5. Execute ``gradle renameExecutables``
+6. Execute ``gradle build``
 
 Now that your binaries are bundled, you can use our ``SimpleBinaryCommand`` like in the following example:
 
