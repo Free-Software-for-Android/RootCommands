@@ -2,15 +2,13 @@
 
 This is a library to simplify the usage of root commands on the Android OS. It is a Java wrapper around native binaries shipped with every Android OS, but can also be used to package and execute your own native binaries.
 
-# Add the lib to your project
+## Use library as jar file
 
-Clone this master and add RootCommands-Library as a Android dependency to your project.  
-Alternative: Compile library using Ant and put resulting jar file in your libs folder.
+TODO
 
-## Include Library Project in Eclipse
+## Use library as Gradle dependency (Android library project)
 
-* New -> Android Project -> Create project from existing source, choose ``RootCommands Library``
-* Add ``RootCommands Library`` as Android Library (Properties of your project -> Android -> Library -> add ``RootCommands Library`` as android library)
+TODO
 
 # Examples
 
