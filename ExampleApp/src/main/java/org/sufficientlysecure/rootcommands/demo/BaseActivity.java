@@ -20,9 +20,8 @@ import org.sufficientlysecure.rootcommands.RootCommands;
 import org.sufficientlysecure.rootcommands.Shell;
 import org.sufficientlysecure.rootcommands.Toolbox;
 import org.sufficientlysecure.rootcommands.command.Command;
-import org.sufficientlysecure.rootcommands.command.SimpleBinaryCommand;
+import org.sufficientlysecure.rootcommands.command.SimpleExecutableCommand;
 import org.sufficientlysecure.rootcommands.command.SimpleCommand;
-import org.sufficientlysecure.rootcommands.demo.R;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -120,7 +119,7 @@ public class BaseActivity extends Activity {
 
     public void binariesTestOnClick(View view) {
         try {
-            SimpleBinaryCommand binaryCommand = new SimpleBinaryCommand(this, "hello_world", "");
+            SimpleExecutableCommand binaryCommand = new SimpleExecutableCommand(this, "hello_world", "");
 
             // started as normal shell without root, but you can also start your binaries on a root
             // shell if you need more privileges!
@@ -129,7 +128,7 @@ public class BaseActivity extends Activity {
             shell.add(binaryCommand).waitForFinish();
 
             Toolbox tb = new Toolbox(shell);
-            if (tb.killAllBinary("hello_world")) {
+            if (tb.killAllExecutable("hello_world")) {
                 Log.d(TAG, "Hello World daemon killed!");
             } else {
                 Log.d(TAG, "Killing failed!");

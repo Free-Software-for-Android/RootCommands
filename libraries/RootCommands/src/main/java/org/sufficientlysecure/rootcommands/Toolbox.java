@@ -25,7 +25,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.sufficientlysecure.rootcommands.command.BinaryCommand;
+import org.sufficientlysecure.rootcommands.command.ExecutableCommand;
 import org.sufficientlysecure.rootcommands.command.Command;
 import org.sufficientlysecure.rootcommands.command.SimpleCommand;
 import org.sufficientlysecure.rootcommands.util.BrokenBusyboxException;
@@ -185,19 +185,19 @@ public class Toolbox {
     }
 
     /**
-     * Kill a running binary
+     * Kill a running executable
      * 
-     * See README for more information how to use your own binaries!
+     * See README for more information how to use your own executables!
      * 
-     * @param binaryName
+     * @param executableName
      * @return
      * @throws BrokenBusyboxException
      * @throws TimeoutException
      * @throws IOException
      */
-    public boolean killAllBinary(String binaryName) throws BrokenBusyboxException,
+    public boolean killAllExecutable(String executableName) throws BrokenBusyboxException,
             TimeoutException, IOException {
-        return killAll(BinaryCommand.BINARY_PREFIX + binaryName + BinaryCommand.BINARY_SUFFIX);
+        return killAll(ExecutableCommand.EXECUTABLE_PREFIX + executableName + ExecutableCommand.EXECUTABLE_SUFFIX);
     }
 
     /**
@@ -235,8 +235,8 @@ public class Toolbox {
      */
     public boolean isBinaryRunning(String binaryName) throws BrokenBusyboxException,
             TimeoutException, IOException {
-        return isProcessRunning(BinaryCommand.BINARY_PREFIX + binaryName
-                + BinaryCommand.BINARY_SUFFIX);
+        return isProcessRunning(ExecutableCommand.EXECUTABLE_PREFIX + binaryName
+                + ExecutableCommand.EXECUTABLE_SUFFIX);
     }
 
     /**

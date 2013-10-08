@@ -134,32 +134,32 @@ Log.d(TAG, tb.getFilePermissions("/system/etc/hosts"));
 shell.close();
 ```
 
-## Binaries
+## Executables
 
-Android APKs are normally not designed to include native binaries. But they are designed to include native libraries for different architectures, which are deployed when the app is installed on the device. Androids mechanism will deploy the proper native library based on the architecture of the device.
+Android APKs are normally not designed to include native executables. But they are designed to include native libraries for different architectures, which are deployed when the app is installed on the device. Androids mechanism will deploy the proper native library based on the architecture of the device.
 This method only deploys files that are named like ``lib*.so``, which are included from the libs folder of your project.
 
-We are missusing Androids library method to deploy our native binaries, by renaming them after compilation, so that they are included in the apk and deployed based on the architecture.
+We are missusing Androids library method to deploy our native executables, by renaming them after compilation, so that they are included in the apk and deployed based on the architecture.
 
-Note: Permission and owner of deployed files: ``-rwxr-xr-x system   system      38092 2012-09-24 19:51 libhello_world_bin.so``
+Note: Permission and owner of deployed files: ``-rwxr-xr-x system   system      38092 2012-09-24 19:51 libhello_world_exec.so``
 
-1. Put the sources of the native binaries into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/ExampleApp/jni
+1. Put the sources of the native executables into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/ExampleApp/jni
 2. Write your own Android.mk and Application.mk
 3. To automate the renaming process I propose a Gradle task: https://github.com/dschuermann/root-commands/blob/master/ExampleApp/build.gradle . This will rename the files from ``*`` to ``lib*_bin.so``.
-4. Execute ``ndk-build`` to build binaries
+4. Execute ``ndk-build`` to build executables
 5. Execute ``gradle renameExecutables``
 6. Execute ``gradle build``
 
-Now that your binaries are bundled, you can use our ``SimpleBinaryCommand`` like in the following example:
+Now that your executables are bundled, you can use our ``SimpleExecutableCommand`` like in the following example:
 
 ```java
-SimpleBinaryCommand binaryCommand = new SimpleBinaryCommand(this, "hello_world", "");
+SimpleExecutableCommand execCommand = new SimpleExecutableCommand(this, "hello_world", "");
 
-// started as normal shell without root, but you can also start your binaries on a root
+// started as normal shell without root, but you can also start your executables on a root
 // shell if you need more privileges!
 Shell shell = Shell.startShell();
 
-shell.add(binaryCommand).waitForFinish();
+shell.add(execCommand).waitForFinish();
 
 Toolbox tb = new Toolbox(shell);
 if (tb.killAllBinary("hello_world")) {
