@@ -69,7 +69,7 @@ public class Toolbox {
      * @throws BrokenBusyboxException
      */
     public boolean isRootAccessGiven() throws BrokenBusyboxException, TimeoutException, IOException {
-        SimpleCommand idCommand = new SimpleCommand("toolbox id");
+        SimpleCommand idCommand = new SimpleCommand("id");
         shell.add(idCommand).waitForFinish();
 
         if (idCommand.getOutput().contains("uid=0")) {
@@ -89,7 +89,7 @@ public class Toolbox {
         private Pattern psPattern;
 
         public PsCommand(String processName) {
-            super("toolbox ps");
+            super("ps");
             this.processName = processName;
             pids = new ArrayList<String>();
 
@@ -169,7 +169,7 @@ public class Toolbox {
         // kill processes
         if (!psCommand.getPids().isEmpty()) {
             // example: kill -9 1234 1222 5343
-            SimpleCommand killCommand = new SimpleCommand("toolbox kill -9 "
+            SimpleCommand killCommand = new SimpleCommand("kill -9 "
                     + psCommand.getPidsString());
             shell.add(killCommand).waitForFinish();
 
@@ -261,7 +261,7 @@ public class Toolbox {
         }
 
         public LsCommand(String file) {
-            super("toolbox ls -l " + file);
+            super("ls -l " + file);
 
             // get only filename:
             this.fileName = (new File(file)).getName();
@@ -417,7 +417,7 @@ public class Toolbox {
             throws BrokenBusyboxException, TimeoutException, IOException {
         Log.d(RootCommands.TAG, "Set permissions of " + file + " to " + permissions);
 
-        SimpleCommand chmodCommand = new SimpleCommand("toolbox chmod " + permissions + " " + file);
+        SimpleCommand chmodCommand = new SimpleCommand("chmod " + permissions + " " + file);
         shell.add(chmodCommand).waitForFinish();
 
         if (chmodCommand.getExitCode() == 0) {
@@ -500,7 +500,7 @@ public class Toolbox {
 
         boolean commandSuccess = false;
 
-        SimpleCommand ddCommand = new SimpleCommand("toolbox dd if=" + source + " of="
+        SimpleCommand ddCommand = new SimpleCommand("dd if=" + source + " of="
                 + destination);
         shell.add(ddCommand).waitForFinish();
 
@@ -508,7 +508,7 @@ public class Toolbox {
             commandSuccess = true;
         } else {
             // try cat if dd fails
-            SimpleCommand catCommand = new SimpleCommand("toolbox cat " + source + " > "
+            SimpleCommand catCommand = new SimpleCommand("cat " + source + " > "
                     + destination);
             shell.add(catCommand).waitForFinish();
 
@@ -585,7 +585,7 @@ public class Toolbox {
         private boolean fileExists = false;
 
         public FileExistsCommand(String file) {
-            super("toolbox ls " + file);
+            super("ls " + file);
             this.file = file;
         }
 
