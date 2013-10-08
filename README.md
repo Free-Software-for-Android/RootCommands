@@ -143,7 +143,7 @@ We are missusing Androids library method to deploy our native executables, by re
 
 Note: Permission and owner of deployed files: ``-rwxr-xr-x system   system      38092 2012-09-24 19:51 libhello_world_exec.so``
 
-1. Put the sources of the native executables into the libs folder as seen in https://github.com/dschuermann/root-commands/tree/master/ExampleApp/jni
+1. Put the sources of the native executables into the jni folder as seen in https://github.com/dschuermann/root-commands/tree/master/ExampleApp/jni
 2. Write your own Android.mk and Application.mk
 3. To automate the renaming process I propose a Gradle task: https://github.com/dschuermann/root-commands/blob/master/ExampleApp/build.gradle . This will rename the files from ``*`` to ``lib*_bin.so``.
 4. Execute ``ndk-build`` to build executables
