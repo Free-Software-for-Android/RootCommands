@@ -181,6 +181,7 @@ Fork RootCommands and do a Pull Request. I will merge your changes back into the
 # Other Root libraries
 * https://github.com/Chainfire/libsuperuser
 * http://code.google.com/p/roottools/
+* https://github.com/SpazeDog/rootfw
 
 # Authors
 RootCommands is based on several other open source projects, thus several authors are involved:
