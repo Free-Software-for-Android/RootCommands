@@ -111,13 +111,11 @@ public abstract class Command {
         LOGGER.log(Level.FINE, "Command " + id + " finished.");
     }
 
-    public void setExitCode(int code) {
-        synchronized (this) {
-            exitCode = code;
-            finished = true;
-            commandFinished(id);
-            this.notifyAll();
-        }
+    public synchronized void setExitCode(int code) {
+        exitCode = code;
+        finished = true;
+        commandFinished(id);
+        this.notifyAll();
     }
 
     /**
@@ -146,28 +144,26 @@ public abstract class Command {
      * @throws TimeoutException
      * @throws BrokenBusyboxException
      */
-    public void waitForFinish() throws TimeoutException, BrokenBusyboxException {
-        synchronized (this) {
-            while (!finished) {
-                try {
-                    this.wait(timeout);
-                } catch (InterruptedException e) {
-                    LOGGER.log(Level.SEVERE, "InterruptedException in waitForFinish()", e);
-                }
-
-                if (!finished) {
-                    finished = true;
-                    terminate("Timeout");
-                    throw new TimeoutException("Timeout has occurred.");
-                }
+    public synchronized void waitForFinish() throws TimeoutException, BrokenBusyboxException {
+        while (!finished) {
+            try {
+                this.wait(timeout);
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.SEVERE, "InterruptedException in waitForFinish()", e);
             }
 
-            if (brokenBusyboxDetected) {
-                throw new BrokenBusyboxException();
+            if (!finished) {
+                finished = true;
+                terminate("Timeout");
+                throw new TimeoutException("Timeout has occurred.");
             }
-
-            processAfterExecution(exitCode);
         }
+
+        if (brokenBusyboxDetected) {
+            throw new BrokenBusyboxException();
+        }
+
+        processAfterExecution(exitCode);
     }
 
 }
