@@ -22,10 +22,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
-
-import org.sufficientlysecure.rootcommands.RootCommands;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Utils {
+	private static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
+
     /*
      * The emulator and ADP1 device both have a su binary in /system/xbin/su, but it doesn't allow
      * apps to use it (su app_29 $ su su: uid 10029 not allowed to su).
@@ -49,13 +51,13 @@ public class Utils {
         for (String p : BinaryPlaces) {
             File su = new File(p + "su");
             if (su.exists()) {
-                Log.d(RootCommands.TAG, "su found at: " + p);
+                LOGGER.log(Level.FINE, "su found at: " + p);
                 return su.getAbsolutePath();
             } else {
-                Log.v(RootCommands.TAG, "No su in: " + p);
+                LOGGER.log(Level.INFO, "No su in: " + p);
             }
         }
-        Log.d(RootCommands.TAG, "No su found in a well-known location, " + "will just use \"su\".");
+        LOGGER.log(Level.FINE, "No su found in a well-known location, " + "will just use \"su\".");
         return "su";
     }
 
