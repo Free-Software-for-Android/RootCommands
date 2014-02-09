@@ -20,13 +20,16 @@ package org.sufficientlysecure.rootcommands.command;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.sufficientlysecure.rootcommands.RootCommands;
 import org.sufficientlysecure.rootcommands.Shell;
 import org.sufficientlysecure.rootcommands.util.BrokenBusyboxException;
-import org.sufficientlysecure.rootcommands.util.Log;
 
 public abstract class Command {
+    private static final Logger LOGGER = Logger.getLogger(Command.class.getName());
+
     final String command[];
     boolean finished = false;
     boolean brokenBusyboxDetected = false;
@@ -67,7 +70,7 @@ public abstract class Command {
             sb.append(command[i] + " 2>&1");
             sb.append('\n');
         }
-        Log.d(RootCommands.TAG, "Sending command(s): " + sb.toString());
+        LOGGER.log(Level.FINE, "Sending command(s): " + sb.toString());
         return sb.toString();
     }
 
@@ -76,7 +79,7 @@ public abstract class Command {
     }
 
     public void processOutput(String line) {
-        Log.d(RootCommands.TAG, "ID: " + id + ", Output: " + line);
+        LOGGER.log(Level.FINE, "ID: " + id + ", Output: " + line);
 
         /*
          * Try to detect broken toolbox/busybox binaries (see
@@ -86,7 +89,7 @@ public abstract class Command {
          * and chown) in certain directories (e.g. /data/data)
          */
         if (line.contains("Value too large for defined data type")) {
-            Log.e(RootCommands.TAG, "Busybox is broken with high probability due to line: " + line);
+            LOGGER.log(Level.SEVERE, "Busybox is broken with high probability due to line: " + line);
             brokenBusyboxDetected = true;
         }
 
@@ -97,7 +100,7 @@ public abstract class Command {
     public abstract void output(int id, String line);
 
     public void processAfterExecution(int exitCode) {
-        Log.d(RootCommands.TAG, "ID: " + id + ", ExitCode: " + exitCode);
+        LOGGER.log(Level.FINE, "ID: " + id + ", ExitCode: " + exitCode);
 
         afterExecution(id, exitCode);
     }
@@ -105,7 +108,7 @@ public abstract class Command {
     public abstract void afterExecution(int id, int exitCode);
 
     public void commandFinished(int id) {
-        Log.d(RootCommands.TAG, "Command " + id + " finished.");
+        LOGGER.log(Level.FINE, "Command " + id + " finished.");
     }
 
     public void setExitCode(int code) {
@@ -125,7 +128,7 @@ public abstract class Command {
     public void terminate(String reason) {
         try {
             shell.close();
-            Log.d(RootCommands.TAG, "Terminating the shell.");
+            LOGGER.log(Level.FINE, "Terminating the shell.");
             terminated(reason);
         } catch (IOException e) {
         }
@@ -133,7 +136,7 @@ public abstract class Command {
 
     public void terminated(String reason) {
         setExitCode(-1);
-        Log.d(RootCommands.TAG, "Command " + id + " did not finish, because of " + reason);
+        LOGGER.log(Level.FINE, "Command " + id + " did not finish, because of " + reason);
     }
 
     /**
@@ -149,7 +152,7 @@ public abstract class Command {
                 try {
                     this.wait(timeout);
                 } catch (InterruptedException e) {
-                    Log.e(RootCommands.TAG, "InterruptedException in waitForFinish()", e);
+                    LOGGER.log(Level.SEVERE, "InterruptedException in waitForFinish()", e);
                 }
 
                 if (!finished) {

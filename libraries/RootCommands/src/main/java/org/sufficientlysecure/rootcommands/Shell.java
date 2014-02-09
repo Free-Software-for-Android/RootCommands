@@ -24,9 +24,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.sufficientlysecure.rootcommands.command.Command;
-import org.sufficientlysecure.rootcommands.util.Log;
 import org.sufficientlysecure.rootcommands.util.RootAccessDeniedException;
 import org.sufficientlysecure.rootcommands.util.Utils;
 
@@ -36,6 +37,8 @@ public class Shell implements Closeable {
     private final DataOutputStream outputStream;
     private final List<Command> commands = new ArrayList<Command>();
     private boolean close = false;
+
+    private static final Logger LOGGER = Logger.getLogger(Shell.class.getName());
 
     private static final String LD_LIBRARY_PATH = System.getenv("LD_LIBRARY_PATH");
     private static final String token = "F*D^W@#FGF";
@@ -50,7 +53,7 @@ public class Shell implements Closeable {
      */
     public static Shell startRootShell(ArrayList<String> customEnv, String baseDirectory)
             throws IOException, RootAccessDeniedException {
-        Log.d(RootCommands.TAG, "Starting Root Shell!");
+        LOGGER.log(Level.FINE, "Starting Root Shell!");
 
         // On some versions of Android (ICS) LD_LIBRARY_PATH is unset when using su
         // We need to pass LD_LIBRARY_PATH over su for some commands to work correctly.
@@ -84,7 +87,7 @@ public class Shell implements Closeable {
      */
     public static Shell startShell(ArrayList<String> customEnv, String baseDirectory)
             throws IOException {
-        Log.d(RootCommands.TAG, "Starting Shell!");
+        LOGGER.log(Level.FINE, "Starting Shell!");
         Shell shell = new Shell("sh", customEnv, baseDirectory);
         return shell;
     }
@@ -110,7 +113,7 @@ public class Shell implements Closeable {
      */
     public static Shell startCustomShell(String shellPath, ArrayList<String> customEnv,
             String baseDirectory) throws IOException {
-        Log.d(RootCommands.TAG, "Starting Custom Shell!");
+        LOGGER.log(Level.FINE, "Starting Custom Shell!");
         Shell shell = new Shell(shellPath, customEnv, baseDirectory);
 
         return shell;
@@ -129,7 +132,7 @@ public class Shell implements Closeable {
 
     private Shell(String shell, ArrayList<String> customEnv, String baseDirectory)
             throws IOException, RootAccessDeniedException {
-        Log.d(RootCommands.TAG, "Starting shell: " + shell);
+        LOGGER.log(Level.FINE, "Starting shell: " + shell);
 
         // start shell process!
         shellProcess = Utils.runWithEnv(shell, customEnv, baseDirectory);
@@ -164,7 +167,7 @@ public class Shell implements Closeable {
             try {
                 writeCommands();
             } catch (IOException e) {
-                Log.e(RootCommands.TAG, "IO Exception", e);
+                LOGGER.log(Level.SEVERE, "IO Exception", e);
             }
         }
     };
@@ -174,9 +177,9 @@ public class Shell implements Closeable {
             try {
                 readOutput();
             } catch (IOException e) {
-                Log.e(RootCommands.TAG, "IOException", e);
+                LOGGER.log(Level.SEVERE, "IOException", e);
             } catch (InterruptedException e) {
-                Log.e(RootCommands.TAG, "InterruptedException", e);
+                LOGGER.log(Level.SEVERE, "InterruptedException", e);
             }
         }
     };
@@ -198,7 +201,7 @@ public class Shell implements Closeable {
             shellProcess.destroy();
         }
 
-        Log.d(RootCommands.TAG, "Shell destroyed");
+        LOGGER.log(Level.FINE, "Shell destroyed");
     }
 
     /**
@@ -229,12 +232,12 @@ public class Shell implements Closeable {
                     out.write("\nexit 0\n".getBytes());
                     out.flush();
                     out.close();
-                    Log.d(RootCommands.TAG, "Closing shell");
+                    LOGGER.log(Level.FINE, "Closing shell");
                     return;
                 }
             }
         } catch (InterruptedException e) {
-            Log.e(RootCommands.TAG, "interrupted while writing command", e);
+            LOGGER.log(Level.SEVERE, "interrupted while writing command", e);
         }
     }
 
@@ -288,7 +291,7 @@ public class Shell implements Closeable {
             }
             command.processOutput(lineStdOut);
         }
-        Log.d(RootCommands.TAG, "Read all output");
+        LOGGER.log(Level.FINE, "Read all output");
         shellProcess.waitFor();
         destroyShellProcess();
 

@@ -16,13 +16,14 @@
 
 package org.sufficientlysecure.rootcommands;
 
-import org.sufficientlysecure.rootcommands.util.Log;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RootCommands {
     public static boolean DEBUG = false;
     public static int DEFAULT_TIMEOUT = 10000;
 
-    public static final String TAG = "RootCommands";
+    private static final Logger LOGGER = Logger.getLogger(RootCommands.class.getName());
 
     /**
      * General method to check if user has su binary and accepts root access for this program!
@@ -42,7 +43,7 @@ public class RootCommands {
 
             rootShell.close();
         } catch (Exception e) {
-            Log.e(TAG, "Problem while checking for root access!", e);
+            LOGGER.log(Level.SEVERE, "Problem while checking for root access!", e);
         }
 
         return rootAccess;

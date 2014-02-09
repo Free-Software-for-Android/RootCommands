@@ -22,14 +22,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.sufficientlysecure.rootcommands.command.ExecutableCommand;
 import org.sufficientlysecure.rootcommands.command.Command;
+import org.sufficientlysecure.rootcommands.command.ExecutableCommand;
 import org.sufficientlysecure.rootcommands.command.SimpleCommand;
 import org.sufficientlysecure.rootcommands.util.BrokenBusyboxException;
-import org.sufficientlysecure.rootcommands.util.Log;
 
 import android.os.StatFs;
 import android.os.SystemClock;
@@ -44,6 +45,9 @@ import android.os.SystemClock;
  * 
  */
 public class Toolbox {
+
+    private static final Logger LOGGER = Logger.getLogger(Toolbox.class.getName());
+
     private Shell shell;
 
     /**
@@ -131,12 +135,12 @@ public class Toolbox {
                         String pid = psMatcher.group(1);
                         // add to pids list
                         pids.add(pid);
-                        Log.d(RootCommands.TAG, "Found pid: " + pid);
+                        LOGGER.log(Level.FINE, "Found pid: " + pid);
                     } else {
-                        Log.d(RootCommands.TAG, "Matching in ps command failed!");
+                        LOGGER.log(Level.FINE, "Matching in ps command failed!");
                     }
                 } catch (Exception e) {
-                    Log.e(RootCommands.TAG, "Error with regex!", e);
+                    LOGGER.log(Level.SEVERE, "Error with regex!", e);
                 }
             }
         }
@@ -161,7 +165,7 @@ public class Toolbox {
      */
     public boolean killAll(String processName) throws BrokenBusyboxException, TimeoutException,
             IOException {
-        Log.d(RootCommands.TAG, "Killing process " + processName);
+        LOGGER.log(Level.FINE, "Killing process " + processName);
 
         PsCommand psCommand = new PsCommand(processName);
         shell.add(psCommand).waitForFinish();
@@ -179,7 +183,7 @@ public class Toolbox {
                 return false;
             }
         } else {
-            Log.d(RootCommands.TAG, "No pid found! Nothing was killed!");
+            LOGGER.log(Level.FINE, "No pid found! Nothing was killed!");
             return false;
         }
     }
@@ -265,7 +269,7 @@ public class Toolbox {
 
             // get only filename:
             this.fileName = (new File(file)).getName();
-            Log.d(RootCommands.TAG, "fileName: " + fileName);
+            LOGGER.log(Level.FINE, "fileName: " + fileName);
 
             /**
              * regex to get pid out of ps line, example:
@@ -344,9 +348,9 @@ public class Toolbox {
                     if (permissionMatcher.find()) {
                         permissions = convertPermissions(permissionMatcher.group(1));
 
-                        Log.d(RootCommands.TAG, "Found permissions: " + permissions);
+                        LOGGER.log(Level.FINE, "Found permissions: " + permissions);
                     } else {
-                        Log.d(RootCommands.TAG, "Permissions were not found in ls command!");
+                        LOGGER.log(Level.FINE, "Permissions were not found in ls command!");
                     }
 
                     // try to parse for symlink
@@ -357,12 +361,12 @@ public class Toolbox {
                          * absolute!!!
                          */
                         symlink = symlinkMatcher.group(1);
-                        Log.d(RootCommands.TAG, "Symlink found: " + symlink);
+                        LOGGER.log(Level.FINE, "Symlink found: " + symlink);
                     } else {
-                        Log.d(RootCommands.TAG, "No symlink found!");
+                        LOGGER.log(Level.FINE, "No symlink found!");
                     }
                 } catch (Exception e) {
-                    Log.e(RootCommands.TAG, "Error with regex!", e);
+                    LOGGER.log(Level.SEVERE, "Error with regex!", e);
                 }
             }
         }
@@ -385,12 +389,12 @@ public class Toolbox {
      */
     public String getFilePermissions(String file) throws BrokenBusyboxException, TimeoutException,
             IOException {
-        Log.d(RootCommands.TAG, "Checking permissions for " + file);
+        LOGGER.log(Level.FINE, "Checking permissions for " + file);
 
         String permissions = null;
 
         if (fileExists(file)) {
-            Log.d(RootCommands.TAG, file + " was found.");
+            LOGGER.log(Level.FINE, file + " was found.");
 
             LsCommand lsCommand = new LsCommand(file);
             shell.add(lsCommand).waitForFinish();
@@ -415,7 +419,7 @@ public class Toolbox {
      */
     public boolean setFilePermissions(String file, String permissions)
             throws BrokenBusyboxException, TimeoutException, IOException {
-        Log.d(RootCommands.TAG, "Set permissions of " + file + " to " + permissions);
+        LOGGER.log(Level.FINE, "Set permissions of " + file + " to " + permissions);
 
         SimpleCommand chmodCommand = new SimpleCommand("chmod " + permissions + " " + file);
         shell.add(chmodCommand).waitForFinish();
@@ -441,7 +445,7 @@ public class Toolbox {
      */
     public String getSymlink(String file) throws BrokenBusyboxException, TimeoutException,
             IOException {
-        Log.d(RootCommands.TAG, "Find symlink for " + file);
+        LOGGER.log(Level.FINE, "Find symlink for " + file);
 
         String symlink = null;
 
@@ -487,7 +491,7 @@ public class Toolbox {
         // remount destination as read/write before copying to it
         if (remountAsRw) {
             if (!remount(destination, "RW")) {
-                Log.d(RootCommands.TAG,
+                LOGGER.log(Level.FINE,
                         "Remounting failed! There is probably no need to remount this partition!");
             }
         }
@@ -525,7 +529,7 @@ public class Toolbox {
         // remount destination back to read only
         if (remountAsRw) {
             if (!remount(destination, "RO")) {
-                Log.d(RootCommands.TAG,
+                LOGGER.log(Level.FINE,
                         "Remounting failed! There is probably no need to remount this partition!");
             }
         }
@@ -572,7 +576,7 @@ public class Toolbox {
             shell.add(rebootCommand).waitForFinish();
 
             if (rebootCommand.getExitCode() == -1) {
-                Log.e(RootCommands.TAG, "Reboot failed!");
+                LOGGER.log(Level.SEVERE, "Reboot failed!");
             }
         }
     }
@@ -748,7 +752,7 @@ public class Toolbox {
         if (mounts != null) {
             for (Mount mount : mounts) {
                 if (path.contains(mount.getMountPoint().getAbsolutePath())) {
-                    Log.d(RootCommands.TAG, (String) mount.getFlags().toArray()[0]);
+                    LOGGER.log(Level.FINE, (String) mount.getFlags().toArray()[0]);
                     return (String) mount.getFlags().toArray()[0];
                 }
             }
@@ -781,20 +785,20 @@ public class Toolbox {
             long availableBlocks = stat.getAvailableBlocks();
             long availableSpace = availableBlocks * blockSize;
 
-            Log.i(RootCommands.TAG, "Checking for enough space: Target: " + target
+            LOGGER.log(Level.INFO, "Checking for enough space: Target: " + target
                     + ", directory: " + directory + " size: " + size + ", availableSpace: "
                     + availableSpace);
 
             if (size < availableSpace) {
                 return true;
             } else {
-                Log.e(RootCommands.TAG, "Not enough space on partition!");
+                LOGGER.log(Level.SEVERE, "Not enough space on partition!");
                 return false;
             }
         } catch (Exception e) {
             // if new StatFs(directory) fails catch IllegalArgumentException and just return true as
             // workaround
-            Log.e(RootCommands.TAG, "Problem while getting available space on partition!", e);
+            LOGGER.log(Level.SEVERE, "Problem while getting available space on partition!", e);
             return true;
         }
     }
