@@ -16,6 +16,7 @@
 
 package org.sufficientlysecure.rootcommands;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -59,6 +60,7 @@ public class SystemCommands {
     /**
      * TODO: Not ready yet
      */
+    @SuppressLint("MissingPermission")
     @TargetApi(8)
     public void reboot() {
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
