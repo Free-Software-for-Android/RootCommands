@@ -31,6 +31,7 @@ tasks.withType(com.android.build.gradle.tasks.PackageApplication) { pkgTask ->
 task renameExecutables(type: Copy) {
     from 'libs'
     in
+    to 'libs'
     include '**/*'
     exclude '**/*.so'
     exclude '**/*.jar'
